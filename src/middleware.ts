@@ -1,29 +1,32 @@
 // src/middleware.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ['/login'];
+export function middleware(request: NextRequest) {
+  // Obtém o token dos cookies
+  const token = request.cookies.get("access_token")?.value;
 
-export function middleware(req: NextRequest) {
-  const token = req.cookies.get('access_token')?.value;
-  const { pathname } = req.nextUrl;
+  // Define as URLs de login e da home
+  const signInUrl = new URL("/login", request.url);
+  const homeUrl = new URL("/", request.url);
 
-  const isPublic = PUBLIC_ROUTES.some(route =>
-    pathname.startsWith(route),
-  );
+  // Verifica se o usuário está na página de login
+  const isLoginPage = request.nextUrl.pathname === "/login";
 
-  // Usuário não logado tentando acessar rota protegida
-  if (!token && !isPublic) {
-    return NextResponse.redirect(new URL('/login', req.url));
+  // Se não tiver token e não estiver na página de login, redireciona para o login
+  if (!token && !isLoginPage) {
+    return NextResponse.redirect(signInUrl);
   }
 
-  // Usuário logado tentando acessar login
-  if (token && pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+  // Se tiver token e estiver na página de login, redireciona para a home (ou dashboard)
+  if (token && isLoginPage) {
+    return NextResponse.redirect(homeUrl);
   }
 
   return NextResponse.next();
 }
 
+// Configura em quais rotas o middleware deve rodar
 export const config = {
-  matcher: ['/((?!_next|favicon.ico).*)'],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

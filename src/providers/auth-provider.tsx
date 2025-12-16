@@ -1,7 +1,7 @@
-// src/providers/auth-provider.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
 import { api } from '@/services/api';
 
@@ -24,6 +24,8 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>(null!);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const isLogged = !!user;
@@ -47,7 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
 
-      const { token, user } = data;
+      const { user } = data;
+      const token = data.token || data.access_token || data.accessToken;
+
+      if (!token) {
+        throw new Error('Token não encontrado na resposta da API');
+      }
 
       setCookie(undefined, 'access_token', token, {
         maxAge: 60 * 60 * 8, // 8 hours
@@ -55,6 +62,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       api.defaults.headers.Authorization = `Bearer ${token}`;
+
+      const role = user.role as User['role'];
+      if(role === "ADMIN" || role === "MANAGER") {
+        router.push('/dashboard');
+      } else {
+        router.push('/pdv');
+      }
 
       setUser(user);
     } catch (error: any) {
@@ -66,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     destroyCookie(undefined, 'access_token', { path: '/' });
     delete api.defaults.headers.Authorization;
     setUser(null);
-    window.location.href = '/login';
+    router.push('/login');
   }
 
   useEffect(() => {
@@ -79,6 +93,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!loading && user) {
+      const isAllowed = user.role === 'ADMIN' || user.role === 'MANAGER';
+      if (!isAllowed && pathname && !pathname.startsWith('/pdv')) {
+        router.push('/pdv');
+      }
+    }
+  }, [user, loading, pathname, router]);
 
   return (
     <AuthContext.Provider
