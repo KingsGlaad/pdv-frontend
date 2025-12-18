@@ -18,13 +18,12 @@ export function PDVHeader({ date }: PDVHeaderProps) {
             KG
           </div>
           <span>
-            PDV{" "}
-            <span className="text-slate-400 font-normal text-sm">v1.0</span>
+            PDV <span className="text-slate-400 font-normal text-sm">v1.0</span>
           </span>
         </div>
         <div className="h-6 w-px bg-slate-700 mx-2"></div>
         <div className="text-sm text-slate-300">
-          Caixa 01 <span className="mx-2">•</span> Operador:{" "}
+          <span className="mx-2">•</span> Operador:{" "}
           <span className="text-white font-medium">{user?.name}</span>
         </div>
       </div>

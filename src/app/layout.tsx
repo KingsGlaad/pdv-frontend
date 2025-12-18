@@ -1,6 +1,7 @@
 // src/app/layout.tsx
-import './globals.css';
-import { AuthProvider } from '@/providers/auth-provider';
+import { Toaster } from "@/components/ui/sonner";
+import "./globals.css";
+import { AuthProvider } from "@/providers/auth-provider";
 
 export default function RootLayout({
   children,
@@ -10,7 +11,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <Toaster richColors theme="system"/>
+        </AuthProvider>
       </body>
     </html>
   );
