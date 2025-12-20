@@ -2,15 +2,44 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DollarSign, ShoppingBag, CreditCard, BarChart } from "lucide-react";
+import {
+  DollarSign,
+  ShoppingBag,
+  CreditCard,
+  BarChart,
+  User,
+} from "lucide-react";
 import { api } from "@/services/api";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ResponsiveContainer,
+  BarChart as RechartsBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 
 interface Stats {
   totalAmount: number;
   count: number;
   averageTicket: number;
+}
+
+interface ChartData {
+  date: string;
+  total: number;
+}
+
+interface RecentSale {
+  id: string;
+  finalAmount: number;
+  paymentMethod: string;
+  payments: { method: string }[];
+  user?: { name: string };
+  createdAt: string;
 }
 
 export default function DashboardPage() {
@@ -20,11 +49,14 @@ export default function DashboardPage() {
     averageTicket: 0,
   });
 
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
+
   // Filters
   const [period, setPeriod] = useState<"today" | "week" | "month">("today");
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchDashboardData = async () => {
       try {
         const end = new Date();
         const start = new Date();
@@ -36,20 +68,75 @@ export default function DashboardPage() {
           start.setMonth(end.getMonth() - 1);
         }
 
-        const response = await api.get("/sales/stats", {
+        // Fetch Stats
+        const statsPromise = api.get("/sales/stats", {
           params: {
             startDate: start.toISOString(),
             endDate: end.toISOString(),
           },
         });
-        setStats(response.data);
+        const chartStart =
+          period === "today"
+            ? new Date(new Date().setDate(new Date().getDate() - 7))
+            : start;
+
+        const chartPromise = api.get("/sales/chart", {
+          params: {
+            startDate: chartStart.toISOString(),
+            endDate: end.toISOString(),
+          },
+        });
+
+        // Fetch Recent Sales
+        const recentSalesPromise = api.get("/sales", {
+          params: { limit: 5 },
+        });
+
+        const [statsRes, chartRes, recentRes] = await Promise.all([
+          statsPromise,
+          chartPromise,
+          recentSalesPromise,
+        ]);
+
+        setStats(statsRes.data);
+        setChartData(chartRes.data);
+        setRecentSales(recentRes.data.data);
       } catch (error) {
-        console.error("Erro ao buscar estatísticas", error);
+        console.error("Erro ao buscar dados do dashboard", error);
       }
     };
 
-    fetchStats();
+    fetchDashboardData();
   }, [period]);
+
+  const getPaymentBadge = (sale: RecentSale) => {
+    const method = sale.payments?.[0]?.method || sale.paymentMethod;
+    let label = method;
+    let colorClass = "bg-slate-100 text-slate-700 border-slate-200";
+
+    if (method === "CASH") {
+      label = "Dinheiro";
+      colorClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
+    } else if (method === "PIX") {
+      label = "Pix";
+      colorClass = "bg-amber-100 text-amber-700 border-amber-200";
+    } else if (
+      method.includes("CARD") ||
+      method === "CREDIT" ||
+      method === "DEBIT"
+    ) {
+      label = "Cartão";
+      colorClass = "bg-blue-100 text-blue-700 border-blue-200";
+    }
+
+    return (
+      <span
+        className={`px-2 py-0.5 rounded-full text-[10px] font-medium border uppercase ${colorClass}`}
+      >
+        {label}
+      </span>
+    );
+  };
 
   return (
     <div className="space-y-6 pt-4 pr-6">
@@ -133,9 +220,10 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Charts Section Placeholder */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 border-slate-200 shadow-sm">
+      {/* Charts & Recent Sales */}
+      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-7">
+        {/* Chart Column */}
+        <Card className="lg:col-span-4 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart className="h-4 w-4 text-slate-500" />
@@ -143,13 +231,113 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <div className="h-[200px] flex items-center justify-center text-slate-400 bg-slate-50 rounded-md border border-dashed">
-              <p>Gráfico de Vendas (Em breve)</p>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsBarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(value) =>
+                      new Date(value).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                      })
+                    }
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                    tickMargin={10}
+                  />
+                  <YAxis
+                    tickFormatter={(value) => `R$${value}`}
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                  />
+                  <Tooltip
+                    formatter={(value: number | undefined) => [
+                      (value || 0).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      }),
+                      "Total",
+                    ]}
+                    labelFormatter={(label) =>
+                      new Date(label).toLocaleDateString("pt-BR", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      })
+                    }
+                    cursor={{ fill: "#f1f5f9" }}
+                    contentStyle={{
+                      borderRadius: "8px",
+                      border: "none",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    }}
+                  />
+                  <Bar
+                    dataKey="total"
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={50}
+                  />
+                </RechartsBarChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        {/* You can add more small charts or recent activity here if needed, but sales table is moved */}
+        {/* Recent Sales Column */}
+        <Card className="lg:col-span-3 border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4 text-slate-500" />
+              Últimas Vendas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentSales.map((sale) => (
+                <div
+                  key={sale.id}
+                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700">
+                      <User className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        {sale?.user?.name || "Vendedor"}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(sale.createdAt).toLocaleTimeString("pt-BR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-sm font-bold text-slate-900">
+                      {Number(sale.finalAmount).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </span>
+                    {getPaymentBadge(sale)}
+                  </div>
+                </div>
+              ))}
+              {recentSales.length === 0 && (
+                <div className="text-center py-8 text-slate-400 text-sm">
+                  Nenhuma venda recente.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
