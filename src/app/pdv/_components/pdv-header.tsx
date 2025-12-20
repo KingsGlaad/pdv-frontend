@@ -1,6 +1,7 @@
 // f:\Projetos\costela\pdv-frontend\src\app\pdv\_components\pdv-header.tsx
 "use client";
 
+import { LogOut } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 
 interface PDVHeaderProps {
@@ -8,7 +9,7 @@ interface PDVHeaderProps {
 }
 
 export function PDVHeader({ date }: PDVHeaderProps) {
-  const { user } = useAuth();
+  const { user, signout } = useAuth();
 
   return (
     <header className="bg-slate-900 text-white p-3 flex justify-between items-center shadow-md shrink-0 z-10">
@@ -33,6 +34,13 @@ export function PDVHeader({ date }: PDVHeaderProps) {
           <span className="text-green-400">●</span> Online
         </div>
         <div className="text-xs text-slate-400 font-mono">{date}</div>
+        <button
+          onClick={signout}
+          className="ml-2 hover:bg-slate-800 p-2 rounded-full transition-colors text-slate-400 hover:text-white"
+          title="Sair"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
       </div>
     </header>
   );

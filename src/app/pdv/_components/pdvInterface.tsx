@@ -19,6 +19,10 @@ import { RegisterSelector } from "./RegisterSelectorProps";
 import { ReasonModal } from "./ReasonModalProps";
 import { toast } from "sonner";
 import { PDVHeader } from "./pdv-header";
+import { ActionButtons } from "./ActionButtons";
+import { CommandasList } from "./CommandasList";
+import { ShortcutsHandler } from "./ShortcutsHandler";
+import { SaleSuccessModal } from "./SaleSuccessModal";
 
 // Tipos
 interface Product {
@@ -36,6 +40,7 @@ interface CartItem extends Product {
 }
 
 type PaymentMethod = "money" | "credit" | "debit" | "pix";
+type SaleMode = "DIRECT" | "COMMAND";
 
 export function PDVInterface() {
   const { signout: logout, user } = useAuth();
@@ -54,12 +59,40 @@ export function PDVInterface() {
   const [customerCpf, setCustomerCpf] = useState("");
   const [discount, setDiscount] = useState(0);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
+
+  // --- NOVO: MODO DE VENDA ---
+  const [saleMode, setSaleMode] = useState<SaleMode | null>("DIRECT"); // Default to Direct
+  const [commandNumber, setCommandNumber] = useState<string>("");
+  const [activeComandaId, setActiveComandaId] = useState<string | null>(null);
+  const [commandas, setCommandas] = useState<any[]>([]);
+
+  const fetchCommandas = async () => {
+    try {
+      const response = await api.get("/orders/open");
+      // Filter only open orders if needed, assuming backend returns all or filted
+      setCommandas(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar comandas:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isRegisterOpen) {
+      fetchCommandas();
+      const interval = setInterval(fetchCommandas, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [isRegisterOpen]);
 
   // --- MODAIS ---
   const [showOpeningModal, setShowOpeningModal] = useState(false);
   const [showClosingModal, setShowClosingModal] = useState(false);
   const [openingBalance, setOpeningBalance] = useState("");
   const [closingBalance, setClosingBalance] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [lastSaleTotal, setLastSaleTotal] = useState(0);
+  const [lastChange, setLastChange] = useState(0);
 
   // Modais de Motivo
   const [showCancelSaleModal, setShowCancelSaleModal] = useState(false);
@@ -96,17 +129,65 @@ export function PDVInterface() {
   }, [cart]);
 
   // --- BUSCA DE PRODUTOS ---
+
+  // Debounce para autocomplete
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.length > 2 && !searchQuery.includes("*")) {
+        try {
+          const response = await api.get(`/product?search=${searchQuery}`);
+          if (response.data) {
+            setSuggestions(response.data);
+          }
+        } catch (error) {
+          console.error("Erro no autocomplete:", error);
+        }
+      } else {
+        setSuggestions([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
   const searchProduct = async (query: string) => {
+    if (!query || query.trim() === "") return;
+
     setIsLoadingProduct(true);
+    setSuggestions([]);
+
     try {
+      // 1. Verificar lógica de Qtd * Código
+      // Regex ajustado para capturar quantidade opcional
+      const qtyMatch = query.match(/^(\d+)\*(.+)$/);
+      let quantity = 1;
+      let actualCode = query;
+
+      if (qtyMatch) {
+        quantity = parseInt(qtyMatch[1], 10);
+        actualCode = qtyMatch[2];
+      }
+
       let productData = null;
+
+      // Tenta buscar por código exato primeiro
       try {
-        const responseCode = await api.get(`/product/code/${query}`);
+        const responseCode = await api.get(`/product/code/${actualCode}`);
         productData = responseCode.data;
       } catch (error) {
-        const responseSearch = await api.get(`/product?search=${query}`);
-        if (responseSearch.data && responseSearch.data.length > 0) {
-          productData = responseSearch.data[0];
+        // Se falhar e não for comando de qtd, tenta busca textual exata
+        if (!qtyMatch) {
+          try {
+            const responseSearch = await api.get(
+              `/product?search=${actualCode}`
+            );
+            if (responseSearch.data && responseSearch.data.length > 0) {
+              // Pega o primeiro apenas se não houver ambiguidade clara ou se for o único
+              productData = responseSearch.data[0];
+            }
+          } catch (err) {
+            // Ignora erro de busca aqui
+          }
         }
       }
 
@@ -118,7 +199,7 @@ export function PDVInterface() {
           price: Number(productData.price),
           stock: productData.stock || 0,
           imageUrl: productData.imageUrl,
-          quantity: 1,
+          quantity: quantity,
           uuid: crypto.randomUUID(),
         };
         handleAddToCart(product);
@@ -127,6 +208,7 @@ export function PDVInterface() {
       }
     } catch (error) {
       console.error("Erro ao buscar:", error);
+      toast.error("Erro ao buscar produto.");
     } finally {
       setIsLoadingProduct(false);
       setSearchQuery("");
@@ -134,17 +216,59 @@ export function PDVInterface() {
     }
   };
 
-  const handleAddToCart = (product: CartItem) => {
+  // --- POLLING ATIVO PARA COMANDA SELECIONADA ---
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (saleMode === "COMMAND" && activeComandaId) {
+      const fetchActiveOrder = async () => {
+        try {
+        } catch (e) {
+          console.error(e);
+        }
+      };
+    }
+  }, [saleMode, activeComandaId]);
+
+  const handleAddToCart = async (product: CartItem) => {
     if (!isRegisterOpen) {
       toast.error("Abra o caixa antes de adicionar produtos.");
       setShowOpeningModal(true);
       return;
     }
+
+    if (saleMode === "COMMAND" && activeComandaId) {
+      try {
+        await api.post(`/orders/${activeComandaId}/items`, {
+          productId: product.id,
+          quantity: product.quantity,
+        });
+        toast.success("Item adicionado!");
+        setCart((prev) => {
+          const existing = prev.find((p) => p.id === product.id);
+          if (existing) {
+            return prev.map((p) =>
+              p.id === product.id
+                ? { ...p, quantity: p.quantity + product.quantity }
+                : p
+            );
+          }
+          return [...prev, product];
+        });
+      } catch (error) {
+        console.error(error);
+        toast.error("Erro ao adicionar item na comanda");
+      }
+      return;
+    }
+
+    // DIRECT SALE (LOCAL)
     setCart((prev) => {
       const existing = prev.find((p) => p.id === product.id);
       if (existing) {
         return prev.map((p) =>
-          p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
+          p.id === product.id
+            ? { ...p, quantity: p.quantity + product.quantity }
+            : p
         );
       }
       return [...prev, product];
@@ -207,6 +331,64 @@ export function PDVInterface() {
     }
   };
 
+  const confirmSale = async (receivedAmount?: number) => {
+    try {
+      if (!activeRegisterId) return;
+      const payload = {
+        items: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+        })),
+        payments: [
+          {
+            method: selectedPayment || "money",
+            amount: total,
+          },
+        ],
+        discount: discount,
+        commandNumber:
+          saleMode === "COMMAND" && commandNumber
+            ? parseInt(commandNumber)
+            : undefined,
+      };
+
+      await api.post("/orders/direct-sale", payload);
+
+      // Sucesso!
+      setLastSaleTotal(total);
+
+      // Calculate change
+      let changeVal = 0;
+      if (
+        selectedPayment === "money" &&
+        receivedAmount &&
+        receivedAmount > total
+      ) {
+        changeVal = receivedAmount - total;
+      }
+      setLastChange(changeVal);
+
+      setShowSuccessModal(true);
+      setIsFinalizing(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao finalizar venda.");
+    }
+  };
+
+  const startNewSale = () => {
+    setCart([]);
+    setDiscount(0);
+    setSelectedPayment(null);
+    setShowSuccessModal(false);
+    setLastChange(0);
+    setSuggestions([]);
+    setSearchQuery("");
+    setSaleMode(null);
+    setCommandNumber("");
+    setTimeout(() => searchInputRef.current?.focus(), 100);
+  };
+
   const handleCloseRegister = async () => {
     if (cart.length > 0) {
       toast.error("Finalize ou cancele a venda antes de fechar o caixa.");
@@ -218,16 +400,27 @@ export function PDVInterface() {
       if (!statusRes.data.session) return;
 
       const finalBalance = parseFloat(closingBalance.replace(",", "."));
+      const sessionId = statusRes.data.session.id;
 
-      await api.post("/cash/close", {
-        sessionId: statusRes.data.session.id,
+      const response = await api.post("/cash/close", {
+        sessionId: sessionId,
         finalBalance: isNaN(finalBalance) ? 0 : finalBalance,
       });
 
+      // Mostrar diferença se houver
+      if (response.data.difference !== 0) {
+        toast.warning(
+          `Caixa fechado com diferença de R$ ${Number(
+            response.data.difference
+          ).toFixed(2)}`
+        );
+      } else {
+        toast.success("Caixa fechado corretamente!");
+      }
+
       setIsRegisterOpen(false);
       setShowClosingModal(false);
-      setActiveRegisterId(null); // Volta para seleção
-      toast.success("Caixa fechado com sucesso!");
+      setActiveRegisterId(null);
     } catch (error) {
       console.error(error);
       toast.error("Erro ao fechar caixa.");
@@ -240,6 +433,125 @@ export function PDVInterface() {
     return <RegisterSelector onSelectRegister={handleRegisterSelection} />;
   }
 
+  // Se caixa aberto mas sem modo de venda definido
+  if (isRegisterOpen && !saleMode) {
+    return (
+      <div className="flex h-full items-center justify-center bg-slate-50 relative">
+        {/* HEADER para poder fechar caixa se quiser */}
+        <div className="absolute top-4 right-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowClosingModal(true)}
+            className="text-red-500 hover:bg-red-50"
+          >
+            <Lock className="mr-2 h-4 w-4" /> Fechar Caixa
+          </Button>
+        </div>
+
+        {/* MODAL MOCKUP PARA SELEÇÃO */}
+        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200">
+          <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">
+            Iniciar Venda
+          </h2>
+
+          <div className="grid grid-cols-1 gap-4">
+            <ActionButtons
+              onDirectSale={() => {
+                setSaleMode("DIRECT");
+                setTimeout(() => searchInputRef.current?.focus(), 100);
+              }}
+              onNewComanda={() => {
+                // Focus input or toggle visibility
+                const input = document.getElementById("comanda-input");
+                input?.focus();
+              }}
+            />
+
+            <div className="relative border-t border-slate-200 my-2">
+              <span className="absolute left-1/2 -top-3 -translate-x-1/2 bg-white px-2 text-slate-400 text-sm">
+                OU
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="font-medium text-slate-700">
+                Informe o número da Comanda
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  id="comanda-input"
+                  placeholder="Nº da Comanda"
+                  className="text-lg h-12"
+                  value={commandNumber}
+                  onChange={(e) => setCommandNumber(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && commandNumber) {
+                      setSaleMode("COMMAND");
+                      setTimeout(() => searchInputRef.current?.focus(), 100);
+                    }
+                  }}
+                  autoFocus
+                />
+                <Button
+                  className="h-12 w-24 bg-slate-800 hover:bg-slate-900"
+                  disabled={!commandNumber}
+                  onClick={() => {
+                    setSaleMode("COMMAND");
+                    setTimeout(() => searchInputRef.current?.focus(), 100);
+                  }}
+                >
+                  OK
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MODAL FECHAMENTO PARA CASO QUEIRA SAIR AQUI */}
+        {showClosingModal && (
+          <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+              <h2 className="text-2xl font-bold mb-2 text-red-600 flex items-center gap-2">
+                <Lock className="h-6 w-6" /> Fechamento
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Valor em Dinheiro (Físico)
+                  </label>
+                  <Input
+                    autoFocus
+                    value={closingBalance}
+                    onChange={(e) => setClosingBalance(e.target.value)}
+                    className="text-2xl font-bold text-center"
+                    placeholder="0,00"
+                  />
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowClosingModal(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={handleCloseRegister}
+                  >
+                    Confirmar Fechamento
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
@@ -247,7 +559,33 @@ export function PDVInterface() {
   const total = Math.max(0, subtotal - discount);
 
   return (
-    <div className="flex h-full gap-4 p-4 relative">
+    <div className="flex h-full gap-4 p-4 relative bg-slate-100">
+      <ShortcutsHandler
+        onF2={() => searchInputRef.current?.focus()}
+        onF9={() => {
+          if (cart.length > 0) setIsFinalizing(true);
+        }}
+        onEscape={() => {
+          if (showClosingModal) setShowClosingModal(false);
+          if (showOpeningModal) setShowOpeningModal(false); // maybe not if forced?
+          if (isFinalizing) setIsFinalizing(false);
+          if (selectedPayment) setSelectedPayment(null);
+          if (showCancelSaleModal) setShowCancelSaleModal(false);
+          if (showRemoveItemModal) setShowRemoveItemModal(false);
+        }}
+      />
+
+      {isRegisterOpen && (
+        <CommandasList
+          commandas={commandas}
+          onRefresh={fetchCommandas}
+          onSelectComanda={(num) => {
+            setCommandNumber(num.toString());
+            setSaleMode("COMMAND");
+            setTimeout(() => searchInputRef.current?.focus(), 100);
+          }}
+        />
+      )}
       {/* MODAL: ABERTURA DE CAIXA */}
       {showOpeningModal && (
         <div className="absolute inset-0 z-50 bg-slate-100/95 flex items-center justify-center">
@@ -353,6 +691,16 @@ export function PDVInterface() {
         onCancel={() => setShowRemoveItemModal(false)}
       />
 
+      {/* MODAL: SUCESSO VENDA */}
+      {/* MODAL: SUCESSO VENDA */}
+      <SaleSuccessModal
+        isOpen={showSuccessModal}
+        total={lastSaleTotal}
+        change={lastChange}
+        onNewSale={startNewSale}
+        onClose={() => setShowSuccessModal(false)}
+      />
+
       {/* --- COLUNA ESQUERDA: PRODUTOS --- */}
       <div className="flex-1 flex flex-col gap-4">
         {/* Barra Superior */}
@@ -370,6 +718,33 @@ export function PDVInterface() {
 
           {isRegisterOpen && (
             <div className="flex gap-2">
+              {saleMode === "COMMAND" && commandNumber ? (
+                <div className="flex items-center gap-2 bg-yellow-100 px-3 py-1 rounded-lg border border-yellow-200">
+                  <span className="font-bold text-yellow-800">
+                    Comanda #{commandNumber}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-yellow-700 hover:bg-yellow-200"
+                    title="Sair da Comanda (Venda Direta)"
+                    onClick={() => {
+                      setSaleMode("DIRECT");
+                      setCommandNumber("");
+                      setActiveComandaId(null);
+                      setCart([]);
+                      toast.info("Modo Venda Direta");
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 bg-green-100 px-3 py-1 rounded-lg border border-green-200">
+                  <span className="font-bold text-green-800">Venda Direta</span>
+                </div>
+              )}
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -383,10 +758,11 @@ export function PDVInterface() {
         </div>
 
         {/* Busca */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 relative">
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (isLoadingProduct) return;
               searchProduct(searchQuery);
             }}
             className="relative"
@@ -396,16 +772,60 @@ export function PDVInterface() {
               ref={searchInputRef}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && isLoadingProduct) {
+                  e.preventDefault();
+                }
+              }}
               className="pl-12 h-14 text-lg bg-slate-50 border-slate-200 focus:bg-white shadow-inner"
               placeholder={
-                isRegisterOpen ? "Digite o código ou nome..." : "Caixa fechado"
+                isRegisterOpen
+                  ? "Digite o código ou nome... (ex: 2*123)"
+                  : "Caixa fechado"
               }
-              disabled={!isRegisterOpen || isLoadingProduct}
+              disabled={!isRegisterOpen} // Remove isLoadingProduct to keep focus
+              autoComplete="off"
+              autoFocus
             />
             {isLoadingProduct && (
               <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-blue-600" />
             )}
           </form>
+
+          {/* AUTOCOMPLETE SUGGESTIONS */}
+          {suggestions.length > 0 && isRegisterOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 z-50 max-h-60 overflow-y-auto">
+              {suggestions.map((product) => (
+                <div
+                  key={product.id}
+                  className="p-4 hover:bg-blue-50 cursor-pointer border-b last:border-none flex justify-between items-center transition-colors"
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Evita perder foco
+                    handleAddToCart({
+                      ...product,
+                      price: Number(product.price),
+                      quantity: 1,
+                      uuid: crypto.randomUUID(),
+                    });
+                    setSearchQuery("");
+                    setSuggestions([]);
+                  }}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-800">
+                      {product.name}
+                    </span>
+                    <span className="text-sm text-slate-500">
+                      Cód: {product.code}
+                    </span>
+                  </div>
+                  <span className="font-bold text-blue-600">
+                    R$ {Number(product.price).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Lista Carrinho */}
@@ -532,37 +952,209 @@ export function PDVInterface() {
         </div>
       </div>
 
-      {/* MODAL FINALIZAÇÃO (Simplificado para manter foco na lógica nova) */}
+      {/* MODAL FINALIZAÇÃO */}
       {isFinalizing && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-4xl h-[80vh] rounded-2xl flex overflow-hidden">
-            <div className="flex-1 p-8 bg-slate-50 border-r">
-              <h2 className="text-2xl font-bold mb-4">Resumo</h2>
-              {/* ... Resumo da venda ... */}
-              <p className="text-4xl font-bold text-blue-600 mt-8">
-                R$ {total.toFixed(2)}
-              </p>
+          <div className="bg-white w-full max-w-4xl h-[80vh] rounded-2xl flex overflow-hidden shadow-2xl">
+            {/* Esquerda: Resumo */}
+            <div className="w-1/3 bg-slate-50 border-r p-6 flex flex-col">
+              <h2 className="text-xl font-bold mb-4 text-slate-700">
+                Resumo do Pedido
+              </h2>
+              <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                {cart.map((item) => (
+                  <div
+                    key={item.uuid}
+                    className="flex justify-between text-sm py-2 border-b border-slate-200"
+                  >
+                    <div>
+                      <span className="font-bold block text-slate-700">
+                        {item.name}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {item.quantity}x R$ {item.price.toFixed(2)}
+                      </span>
+                    </div>
+                    <span className="font-bold text-slate-700">
+                      R$ {(item.quantity * item.price).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-slate-300">
+                <div className="flex justify-between mb-2 text-slate-500">
+                  <span>Subtotal</span>
+                  <span>R$ {subtotal.toFixed(2)}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between mb-2 text-green-600 font-medium">
+                    <span>Desconto</span>
+                    <span>- R$ {discount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-end mt-4">
+                  <span className="text-xl font-bold text-slate-800">
+                    Total a Pagar
+                  </span>
+                  <span className="text-3xl font-extrabold text-blue-600">
+                    R$ {total.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 p-8 flex flex-col">
-              <h2 className="text-2xl font-bold mb-4">Pagamento</h2>
-              {/* ... Botões de pagamento ... */}
-              <div className="mt-auto flex gap-2">
+
+            {/* Direita: Pagamento */}
+            <div className="flex-1 p-8 flex flex-col bg-white">
+              <h2 className="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+                <ShoppingCart className="h-6 w-6 text-blue-600" /> Pagamento
+              </h2>
+
+              {!selectedPayment ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    className="h-32 flex flex-col gap-2 text-lg hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700"
+                    onClick={() => setSelectedPayment("money")}
+                  >
+                    <span className="text-3xl">💵</span> Dinheiro
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-32 flex flex-col gap-2 text-lg hover:bg-green-50 hover:border-green-400 hover:text-green-700"
+                    onClick={() => setSelectedPayment("pix")}
+                  >
+                    <span className="text-3xl">💠</span> PIX
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-32 flex flex-col gap-2 text-lg hover:bg-purple-50 hover:border-purple-400 hover:text-purple-700"
+                    onClick={() => setSelectedPayment("credit")}
+                  >
+                    <span className="text-3xl">💳</span> Crédito
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-32 flex flex-col gap-2 text-lg hover:bg-orange-50 hover:border-orange-400 hover:text-orange-700"
+                    onClick={() => setSelectedPayment("debit")}
+                  >
+                    <span className="text-3xl">💳</span> Débito
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedPayment(null)}
+                    >
+                      ← Voltar
+                    </Button>
+                    <span className="font-bold text-lg uppercase bg-slate-100 px-3 py-1 rounded">
+                      {selectedPayment === "money"
+                        ? "Dinheiro"
+                        : selectedPayment === "pix"
+                        ? "Pix"
+                        : "Cartão"}
+                    </span>
+                  </div>
+
+                  {/* CONTEUDO ESPECIFICO DO METODO */}
+                  <div className="flex-1 flex flex-col justify-center items-center">
+                    {selectedPayment === "money" && (
+                      <div className="w-full max-w-sm space-y-6">
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-2">
+                            Valor Recebido (R$)
+                          </label>
+                          <Input
+                            autoFocus
+                            className="text-4xl text-center h-20 font-bold"
+                            placeholder="0,00"
+                            onChange={() => {
+                              // Simple calc logic here for demo
+                              // In real app, manage state
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                const val = parseFloat(
+                                  (
+                                    e.currentTarget as HTMLInputElement
+                                  ).value.replace(",", ".")
+                                );
+                                if (!isNaN(val) && val >= total) {
+                                  // Pass Received Amount to calculate change
+                                  confirmSale(val);
+                                } else {
+                                  toast.error("Valor insuficiente");
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        <p className="text-center text-slate-500 text-sm">
+                          Pressione Enter para confirmar
+                        </p>
+                      </div>
+                    )}
+
+                    {selectedPayment === "pix" && (
+                      <div className="text-center space-y-4">
+                        <div className="bg-white p-4 border-2 border-slate-800 rounded-lg inline-block">
+                          {/* Mock QR Code */}
+                          <div className="h-48 w-48 bg-slate-900 flex items-center justify-center text-white text-xs">
+                            [QR CODE PIX FAKE]
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-bold text-lg">
+                            Aguardando pagamento...
+                          </p>
+                          <p className="text-slate-500 mb-4">
+                            A chave expira em 14:59
+                          </p>
+                          <Button
+                            className="font-bold bg-green-600 w-full"
+                            onClick={confirmSale}
+                          >
+                            Simular Pagamento Recebido
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {(selectedPayment === "credit" ||
+                      selectedPayment === "debit") && (
+                      <div className="text-center space-y-6">
+                        <div className="animate-pulse">
+                          <span className="text-6xl">💳</span>
+                        </div>
+                        <p className="text-xl font-medium text-slate-700">
+                          Aguardando maquininha...
+                        </p>
+                        <Button
+                          size="lg"
+                          className="font-bold px-8"
+                          onClick={confirmSale}
+                        >
+                          Confirmar Transação
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-auto pt-6 flex gap-3 border-t">
                 <Button
                   variant="outline"
-                  className="flex-1 h-12"
-                  onClick={() => setIsFinalizing(false)}
-                >
-                  Voltar
-                </Button>
-                <Button
-                  className="flex-2 h-12 bg-green-600 font-bold"
+                  className="h-12 px-6"
                   onClick={() => {
-                    toast.success("Venda finalizada!");
-                    setCart([]);
                     setIsFinalizing(false);
+                    setSelectedPayment(null);
                   }}
                 >
-                  Confirmar
+                  Cancelar
                 </Button>
               </div>
             </div>

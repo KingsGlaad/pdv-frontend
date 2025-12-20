@@ -8,172 +8,211 @@ import {
   Lock,
   Unlock,
   RefreshCw,
-  CheckCircle2Icon,
-  AlertCircleIcon,
+  AlertCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 interface Register {
   id: string;
   name: string;
   isOpen: boolean;
+  currentSessionId?: string | null;
   currentOperatorId?: string;
   currentOperatorName?: string;
   openedAt?: string;
 }
 
 interface RegisterSelectorProps {
-  onSelectRegister: (registerId: string, needsOpening: boolean) => void;
+  // Adicionei sessionId opcional aqui
+  onSelectRegister: (
+    registerId: string,
+    needsOpening: boolean,
+    sessionId?: string | null
+  ) => void;
 }
 
 export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
   const [registers, setRegisters] = useState<Register[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const [error, setError] = useState("");
+  const { user, isLoading } = useAuth();
 
   const fetchRegisters = async () => {
     setLoading(true);
+    setError("");
     try {
       const response = await api.get("/cash/registers");
       setRegisters(response.data);
-    } catch (error) {
-      toast.error("Erro ao buscar caixas disponíveis:");
+    } catch (err: any) {
+      console.error("Erro ao buscar caixas:", err);
+      if (err.response?.status === 401) {
+        setError("Sessão expirada. Por favor, faça login novamente.");
+      } else {
+        setError(
+          "Não foi possível carregar a lista de caixas. Verifique a conexão com o servidor."
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRegisters();
-  }, []);
+    if (!isLoading && user) {
+      fetchRegisters();
+    } else if (!isLoading && !user) {
+      setLoading(false);
+      setError("Utilizador não autenticado.");
+    }
+  }, [isLoading, user]);
 
   const handleSelect = (reg: Register) => {
-    const isAdmin = user?.role === "ADMIN"; // Verificar roles reais
+    // Verificação de permissões segura (case insensitive)
+    const role = user?.role?.toUpperCase() || "";
+    const isAdmin = role === "ADMIN" || role === "GERENTE";
+    const isMySession = reg.currentOperatorId === user?.id;
 
-    // Regra: Se aberto por outro usuario e não for admin, bloqueia
-    if (reg.isOpen && reg.currentOperatorId !== user?.id && !isAdmin) {
-      return (
-        <div className="grid w-full max-w-xl items-start gap-4">
-          <Alert variant="destructive">
-            <AlertCircleIcon />
-            <AlertTitle>Erro ao abrir caixa</AlertTitle>
-            <AlertDescription>
-              <p>Esse caixa já está aberto por outro usuário: {reg.currentOperatorName}</p>
-              <ul className="list-inside list-disc text-sm">
-                <li>Verifique se o há outro caixa aberto</li>
-              </ul>
-            </AlertDescription>
-          </Alert>
-        </div>
+    if (reg.isOpen && !isMySession && !isAdmin) {
+      alert(
+        `ACESSO NEGADO\n\nEste caixa está em uso por: ${reg.currentOperatorName}.\nSomente o operador responsável ou um Administrador pode acessá-lo.`
       );
+      return;
     }
-    onSelectRegister(reg.id, !reg.isOpen);
+
+    // Passamos o currentSessionId encontrado na listagem para o pai
+    onSelectRegister(reg.id, !reg.isOpen, reg.currentSessionId);
   };
 
-  if (loading) {
+  if (isLoading || (loading && !error)) {
     return (
       <div className="flex h-full items-center justify-center flex-col gap-4 text-slate-500">
-        <RefreshCw className="h-8 w-8 animate-spin" />
-        <p>Carregando caixas disponíveis...</p>
+        <RefreshCw className="h-10 w-10 animate-spin text-blue-600" />
+        <p className="font-medium">A conectar ao sistema...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center flex-col gap-4">
+        <div className="text-red-500 flex flex-col items-center text-center max-w-md">
+          <AlertCircle className="h-12 w-12 mb-2" />
+          <p className="text-lg font-bold">{error}</p>
+          {error.includes("Sessão expirada") && (
+            <Button
+              className="mt-4"
+              onClick={() => (window.location.href = "/login")}
+            >
+              Ir para Login
+            </Button>
+          )}
+        </div>
+        {!error.includes("Sessão expirada") && (
+          <Button onClick={fetchRegisters}>Tentar Novamente</Button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="flex h-full items-center justify-center bg-slate-100 p-4">
-      <div className="w-full max-w-4xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            Seleção de Caixa
+    <div className="flex h-full items-center justify-center bg-slate-100 p-6 overflow-auto">
+      <div className="w-full max-w-5xl">
+        <div className="mb-10 text-center">
+          <h1 className="text-4xl font-extrabold text-slate-800 mb-2 tracking-tight">
+            Frente de Caixa
           </h1>
-          <p className="text-slate-500">
-            Escolha um terminal para iniciar as operações
+          <p className="text-slate-500 text-lg">
+            Selecione um terminal para iniciar ou continuar as vendas
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {registers.map((reg) => {
+            const role = user?.role?.toUpperCase() || "";
+            const isAdmin = role === "ADMIN" || role === "GERENTE";
             const isMySession = reg.currentOperatorId === user?.id;
-            const isAdmin = user?.role === "ADMIN";
             const isLocked = reg.isOpen && !isMySession && !isAdmin;
 
             return (
               <div
                 key={reg.id}
-                className={cn(
-                  "relative bg-white rounded-xl shadow-sm border-2 p-6 transition-all hover:shadow-md cursor-pointer group",
-                  isLocked
-                    ? "opacity-60 border-slate-200 cursor-not-allowed"
-                    : reg.isOpen
-                    ? "border-green-500 bg-green-50/30"
-                    : "border-slate-200 hover:border-blue-400"
-                )}
                 onClick={() => !isLocked && handleSelect(reg)}
+                className={cn(
+                  "relative bg-white rounded-2xl shadow-sm border-2 p-6 transition-all duration-200 cursor-pointer group flex flex-col justify-between min-h-[200px]",
+                  isLocked
+                    ? "opacity-60 border-slate-200 grayscale-[0.8] cursor-not-allowed"
+                    : reg.isOpen
+                    ? "border-green-500 bg-green-50/20 hover:shadow-lg hover:-translate-y-1"
+                    : "border-slate-200 hover:border-blue-500 hover:shadow-lg hover:-translate-y-1"
+                )}
               >
-                {/* Ícone de Status */}
-                <div className="flex justify-between items-start mb-4">
-                  <div
-                    className={cn(
-                      "h-12 w-12 rounded-lg flex items-center justify-center",
-                      reg.isOpen
-                        ? "bg-green-100 text-green-600"
-                        : "bg-slate-100 text-slate-500 group-hover:text-blue-600 group-hover:bg-blue-100 transition-colors"
-                    )}
-                  >
-                    <Store className="h-6 w-6" />
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div
+                      className={cn(
+                        "h-14 w-14 rounded-xl flex items-center justify-center shadow-sm",
+                        reg.isOpen
+                          ? "bg-green-100 text-green-600"
+                          : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600"
+                      )}
+                    >
+                      <Store className="h-7 w-7" />
+                    </div>
+                    <div
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm border",
+                        reg.isOpen
+                          ? "bg-green-100 text-green-800 border-green-200"
+                          : "bg-slate-100 text-slate-600 border-slate-200"
+                      )}
+                    >
+                      {reg.isOpen ? (
+                        <Unlock className="h-3.5 w-3.5" />
+                      ) : (
+                        <Lock className="h-3.5 w-3.5" />
+                      )}
+                      {reg.isOpen ? "ABERTO" : "FECHADO"}
+                    </div>
                   </div>
-                  <div
-                    className={cn(
-                      "px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1",
-                      reg.isOpen
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-100 text-slate-600"
-                    )}
-                  >
-                    {reg.isOpen ? (
-                      <Unlock className="h-3 w-3" />
-                    ) : (
-                      <Lock className="h-3 w-3" />
-                    )}
-                    {reg.isOpen ? "ABERTO" : "FECHADO"}
-                  </div>
+
+                  <h3 className="text-2xl font-bold text-slate-800 mb-1">
+                    {reg.name}
+                  </h3>
                 </div>
 
-                <h3 className="text-xl font-bold text-slate-800 mb-1">
-                  {reg.name}
-                </h3>
-
                 {reg.isOpen ? (
-                  <div className="text-sm text-slate-500 mt-4 pt-4 border-t border-slate-100">
-                    <div className="flex items-center gap-2 mb-1">
-                      <User className="h-4 w-4" />
-                      <span className="font-medium">
+                  <div className="text-sm text-slate-600 mt-6 pt-4 border-t border-slate-200/60 bg-white/50 rounded-b-xl">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="bg-slate-200 p-1 rounded-full">
+                        <User className="h-3.5 w-3.5" />
+                      </div>
+                      <span className="font-semibold truncate">
                         {isMySession
                           ? "Você"
                           : reg.currentOperatorName || "Desconhecido"}
                       </span>
                     </div>
-                    <div className="text-xs">
+                    <div className="text-xs text-slate-500 pl-8">
                       Aberto às{" "}
-                      {new Date(reg.openedAt!).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {reg.openedAt
+                        ? new Date(reg.openedAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "--:--"}
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-slate-400 mt-4 pt-4 border-t border-slate-100">
+                  <div className="text-sm text-slate-400 mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 group-hover:text-blue-600">
+                    <div className="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-blue-500"></div>
                     Disponível para abertura
                   </div>
                 )}
 
-                {/* Badge para Admin */}
                 {reg.isOpen && !isMySession && isAdmin && (
-                  <div className="absolute top-2 right-2 mt-8 mr-2 bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded border border-yellow-200">
+                  <div className="absolute top-4 right-4 bg-yellow-100 text-yellow-800 text-[10px] uppercase font-bold px-2 py-1 rounded border border-yellow-300 shadow-sm z-10">
                     Acesso Admin
                   </div>
                 )}
