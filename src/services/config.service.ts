@@ -5,8 +5,17 @@ export const configService = {
   async get() {
     // Fallback to default if API fails (or for initial dev)
     try {
-      const { data } = await api.get<Config>("/config");
-      return data;
+      const { data } = await api.get<Config>("/settings");
+      return (
+        data ||
+        ({
+          id: "",
+          appName: "PDV App",
+          theme: "system",
+          currency: "BRL",
+          logoUrl: null,
+        } as Config)
+      );
     } catch (error) {
       console.warn("Failed to fetch config, returning default", error);
       return {
@@ -20,7 +29,7 @@ export const configService = {
   },
 
   async update(dto: UpdateConfigDto) {
-    const { data } = await api.patch<Config>("/config", dto);
+    const { data } = await api.post<Config>("/settings", dto);
     return data;
   },
 
@@ -29,11 +38,15 @@ export const configService = {
     formData.append("file", file);
 
     // Assumes backend endpoint /upload/logo returns { url: string }
-    const { data } = await api.post<{ url: string }>("/upload/logo", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const { data } = await api.post<{ url: string }>(
+      "settings/upload/logo",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return data.url;
   },
 };

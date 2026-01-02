@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useConfig } from "@/providers/config-provider";
 
 const menuItems = [
   {
@@ -41,19 +42,33 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { config } = useConfig();
 
   return (
-    <div className="flex h-full flex-col border-r bg-white text-slate-900 shadow-sm">
+    <div className="flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm">
       {/* Logo Area */}
-      <div className="flex h-16 items-center border-b px-6">
+      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 font-bold text-xl text-primary"
+          className="flex items-center gap-2 font-bold text-xl text-sidebar-primary"
         >
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-white">
-            KG
-          </div>
-          <span>KingsGlaad</span>
+          {config?.logoUrl ? (
+            <div className="relative h-8 w-8 overflow-hidden rounded-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={config.logoUrl}
+                alt="Logo"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground">
+              {config?.appName
+                ? config.appName.substring(0, 2).toUpperCase()
+                : "KG"}
+            </div>
+          )}
+          <span>{config?.appName || "KingsGlaad"}</span>
         </Link>
       </div>
 
@@ -62,7 +77,7 @@ export function Sidebar() {
         <nav className="grid items-start px-4 text-sm font-medium">
           {menuItems.map((group, index) => (
             <div key={index} className="mb-6">
-              <h3 className="mb-2 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <h3 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {group.category}
               </h3>
               <div className="grid gap-1">
@@ -75,20 +90,21 @@ export function Sidebar() {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "group flex items-center gap-3 rounded-md px-3 py-2 text-slate-600 transition-all hover:text-primary hover:bg-slate-50",
-                        isActive && "bg-primary/10 text-primary font-semibold",
+                        "group flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-all hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
+                        isActive &&
+                          "bg-sidebar-accent text-sidebar-primary font-semibold",
                         item.highlight &&
-                          "bg-blue-600 text-white hover:bg-blue-700 hover:text-white shadow-md shadow-blue-200 mt-2 mb-2 justify-center"
+                          "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground shadow-md shadow-primary/20 mt-2 mb-2 justify-center"
                       )}
                     >
                       <Icon
                         className={cn(
                           "h-4 w-4",
                           item.highlight
-                            ? "text-white"
+                            ? "text-primary-foreground"
                             : isActive
-                            ? "text-primary"
-                            : "text-slate-500 group-hover:text-primary"
+                            ? "text-sidebar-primary"
+                            : "text-muted-foreground group-hover:text-sidebar-primary"
                         )}
                       />
                       <span>{item.name}</span>
@@ -102,16 +118,16 @@ export function Sidebar() {
       </div>
 
       {/* Footer / Settings */}
-      <div className="mt-auto border-t p-4">
+      <div className="mt-auto border-t border-sidebar-border p-4">
         <nav className="grid gap-1">
           <Link
             href="/dashboard/settings"
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-primary transition-all"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-primary transition-all"
           >
             <Settings className="h-4 w-4" />
             Configurações
           </Link>
-          <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-red-600 hover:bg-red-50 transition-all text-left">
+          <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-destructive hover:bg-destructive/10 transition-all text-left">
             <LogOut className="h-4 w-4" />
             Sair
           </button>

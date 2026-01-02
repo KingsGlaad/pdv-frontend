@@ -47,12 +47,12 @@ export function DataTable<T extends { id?: string | number }>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-card p-4 rounded-lg border border-border shadow-sm">
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
-            className="pl-9 bg-slate-50 border-slate-200 focus:bg-white"
+            className="pl-9 bg-muted/50 border-input focus:bg-card"
             onChange={(e) => onSearchChange?.(e.target.value)}
           />
         </div>
@@ -64,14 +64,14 @@ export function DataTable<T extends { id?: string | number }>({
         )}
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
         <Table>
-          <TableHeader className="bg-slate-50/80">
+          <TableHeader className="bg-muted/80">
             <TableRow>
               {columns.map((col, i) => (
                 <TableHead
                   key={i}
-                  className={`font-semibold text-slate-600 ${
+                  className={`font-semibold text-muted-foreground ${
                     col.className || ""
                   }`}
                 >
@@ -85,10 +85,10 @@ export function DataTable<T extends { id?: string | number }>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-32 text-center text-slate-400"
+                  className="h-32 text-center text-muted-foreground"
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <div className="h-4 w-4 rounded-full border-2 border-slate-300 border-t-blue-600 animate-spin" />
+                    <div className="h-4 w-4 rounded-full border-2 border-border border-t-primary animate-spin" />
                     Carregando...
                   </div>
                 </TableCell>
@@ -97,7 +97,7 @@ export function DataTable<T extends { id?: string | number }>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-32 text-center text-slate-400"
+                  className="h-32 text-center text-muted-foreground"
                 >
                   Nenhum registro encontrado.
                 </TableCell>
@@ -106,7 +106,7 @@ export function DataTable<T extends { id?: string | number }>({
               data.map((row, rowIndex) => (
                 <TableRow
                   key={row.id || rowIndex}
-                  className="hover:bg-slate-50 transition-colors"
+                  className="hover:bg-muted/50 transition-colors"
                 >
                   {columns.map((col, colIndex) => (
                     <TableCell key={colIndex} className={col.className}>
@@ -124,7 +124,7 @@ export function DataTable<T extends { id?: string | number }>({
 
       {/* Pagination */}
       <div className="flex items-center justify-between px-2">
-        <div className="text-sm text-slate-500">
+        <div className="text-sm text-muted-foreground">
           Mostrando {data.length > 0 ? (page - 1) * limit + 1 : 0} a{" "}
           {Math.min(page * limit, total)} de {total} registros
         </div>
@@ -137,7 +137,7 @@ export function DataTable<T extends { id?: string | number }>({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="flex items-center px-4 text-sm font-medium bg-white border border-slate-200 rounded-md min-w-[3rem] justify-center">
+          <div className="flex items-center px-4 text-sm font-medium bg-card border border-border rounded-md min-w-[3rem] justify-center">
             {page}
           </div>
           <Button

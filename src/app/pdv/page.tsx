@@ -11,7 +11,7 @@ export default function PDVPage() {
   const date = new Date().toLocaleDateString("pt-BR");
 
   return (
-    <div className="h-screen w-full bg-slate-100 overflow-hidden flex flex-col">
+    <div className="h-screen w-full bg-muted overflow-hidden flex flex-col">
       <PDVHeader date={date} />
 
       <main className="flex-1 overflow-hidden">

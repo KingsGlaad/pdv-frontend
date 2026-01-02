@@ -40,17 +40,17 @@ export function CommandasList({
   };
 
   return (
-    <div className="w-64 bg-white border-r border-slate-200 flex flex-col h-full shadow-sm z-10">
-      <div className="p-4 border-b bg-slate-50 flex flex-col gap-3">
+    <div className="w-64 bg-card border-r border-border flex flex-col h-full shadow-sm z-10">
+      <div className="p-4 border-b border-border bg-muted flex flex-col gap-3">
         <div className="flex justify-between items-center">
-          <h2 className="font-bold text-slate-700">Comandas</h2>
-          <span className="text-xs bg-slate-200 px-2 py-1 rounded-full text-slate-600">
+          <h2 className="font-bold text-foreground">Comandas</h2>
+          <span className="text-xs bg-muted/50 px-2 py-1 rounded-full text-muted-foreground">
             {commandas?.length || 0}
           </span>
         </div>
         <Button
           size="sm"
-          className="w-full bg-blue-600 hover:bg-blue-700 font-bold"
+          className="w-full bg-primary hover:bg-primary/90 font-bold text-primary-foreground"
           onClick={handleNewComanda}
         >
           <Plus className="mr-2 h-4 w-4" /> Nova Comanda
@@ -58,29 +58,29 @@ export function CommandasList({
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
         {commandas?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-slate-400 text-sm p-4 text-center">
+          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-sm p-4 text-center">
             <p>Nenhuma comanda aberta</p>
           </div>
         ) : (
           commandas?.map((c) => (
             <div
               key={c.id}
-              className="p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors bg-white shadow-sm"
+              className="p-3 border border-border rounded-lg hover:bg-primary/10 hover:border-primary/50 cursor-pointer transition-colors bg-card shadow-sm"
               onClick={() => onSelectComanda(c.number)}
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-lg text-slate-800">
+                <span className="font-bold text-lg text-card-foreground">
                   #{c.number}
                 </span>
                 {c.table && (
-                  <span className="text-xs bg-slate-100 px-1 rounded border">
+                  <span className="text-xs bg-muted px-1 rounded border border-border text-muted-foreground">
                     MESA/{c.table}
                   </span>
                 )}
               </div>
-              <div className="flex justify-between items-center text-sm text-slate-500">
+              <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>{c.items?.length || 0} itens</span>
-                <span className="font-bold text-blue-600">
+                <span className="font-bold text-primary">
                   R${" "}
                   {c.items
                     ?.reduce(

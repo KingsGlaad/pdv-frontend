@@ -84,7 +84,7 @@ export default function SalesDashboardPage() {
       accessorKey: "user",
       cell: (row) => (
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
+          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
             {row.user?.name?.charAt(0) || "U"}
           </div>
           {row.user?.name || "N/A"}
@@ -97,21 +97,24 @@ export default function SalesDashboardPage() {
       cell: (row) => {
         const method = row.payments?.[0]?.method || row.paymentMethod;
         let label = method;
-        let colorClass = "bg-slate-100 text-slate-700 border-slate-200";
+        let colorClass = "bg-muted text-muted-foreground border-border";
 
         if (method === "CASH") {
           label = "Dinheiro";
-          colorClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
+          colorClass =
+            "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:border-emerald-800";
         } else if (method === "PIX") {
           label = "Pix";
-          colorClass = "bg-amber-100 text-amber-700 border-amber-200";
+          colorClass =
+            "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-400 dark:border-amber-800";
         } else if (
           method.includes("CARD") ||
           method === "CREDIT" ||
           method === "DEBIT"
         ) {
           label = "Cartão";
-          colorClass = "bg-blue-100 text-blue-700 border-blue-200";
+          colorClass =
+            "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-400 dark:border-blue-800";
         }
 
         return (
@@ -138,8 +141,8 @@ export default function SalesDashboardPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <Store className="h-5 w-5 text-slate-500" />
+        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <Store className="h-5 w-5 text-muted-foreground" />
           Histórico de Vendas
         </h2>
         <Button
@@ -168,10 +171,10 @@ export default function SalesDashboardPage() {
         extraFilters={
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="date"
-                className="pl-9 w-40 bg-slate-50 border-slate-200"
+                className="pl-9 w-40 bg-muted/50 border-input"
                 value={filterDate}
                 onChange={(e) => {
                   setFilterDate(e.target.value);

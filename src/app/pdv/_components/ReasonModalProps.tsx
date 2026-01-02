@@ -36,25 +36,25 @@ export function ReasonModal({
   };
 
   return (
-    <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md border border-slate-200">
+    <div className="fixed inset-0 z-60 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-card p-6 rounded-xl shadow-2xl w-full max-w-md border border-border">
         <div className="flex flex-col items-center text-center mb-6">
           <div
             className={`h-12 w-12 rounded-full flex items-center justify-center mb-3 ${
               variant === "danger"
-                ? "bg-red-100 text-red-600"
-                : "bg-orange-100 text-orange-600"
+                ? "bg-destructive/10 text-destructive"
+                : "bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400"
             }`}
           >
             <AlertTriangle className="h-6 w-6" />
           </div>
-          <h3 className="text-xl font-bold text-slate-800">{title}</h3>
-          <p className="text-sm text-slate-500 mt-1">{description}</p>
+          <h3 className="text-xl font-bold text-foreground">{title}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{description}</p>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">
+            <label className="text-sm font-medium text-foreground mb-1 block">
               Motivo / Justificativa
             </label>
             <Input
@@ -72,8 +72,8 @@ export function ReasonModal({
             <Button
               className={`flex-1 font-bold ${
                 variant === "danger"
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-orange-500 hover:bg-orange-600"
+                  ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  : "bg-orange-500 hover:bg-orange-600 text-white"
               }`}
               onClick={handleConfirm}
             >

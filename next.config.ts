@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: "http://localhost:3333/:path*", // Redireciona /api/ para o backend NestJS
       },
+      {
+        source: "/uploads/:path*",
+        destination: "http://localhost:3333/uploads/:path*", // Serve arquivos estáticos do backend
+      },
     ];
   },
   images: {
@@ -14,6 +18,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
       },
     ],
   },

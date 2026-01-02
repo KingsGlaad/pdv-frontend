@@ -18,7 +18,7 @@ export const getProductColumns = ({
     accessorKey: "imageUrl",
     className: "w-[80px]",
     cell: (row) => (
-      <div className="h-10 w-10 rounded-md bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+      <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center overflow-hidden border border-border">
         {row.imageUrl ? (
           <Image
             src={row.imageUrl}
@@ -28,7 +28,7 @@ export const getProductColumns = ({
             height={32}
           />
         ) : (
-          <Package className="h-5 w-5 text-slate-400" />
+          <Package className="h-5 w-5 text-muted-foreground" />
         )}
       </div>
     ),
@@ -41,7 +41,7 @@ export const getProductColumns = ({
   {
     header: "Nome",
     accessorKey: "name",
-    className: "font-medium text-slate-700",
+    className: "font-medium",
   },
   {
     header: "Preço",
@@ -61,7 +61,7 @@ export const getProductColumns = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
+          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
           onClick={() => onEdit(row)}
         >
           <Pencil className="h-4 w-4" />
@@ -69,7 +69,7 @@ export const getProductColumns = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50"
+          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           onClick={() => onDelete(row)}
         >
           <Trash2 className="h-4 w-4" />

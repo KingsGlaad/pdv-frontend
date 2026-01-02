@@ -114,7 +114,7 @@ export function LoginForm({
             <Image
               src={loginImage}
               alt="Fundo Login"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              className="absolute inset-0 h-full w-full object-cover brightness-[0.7]"
             />
           </div>
         </CardContent>

@@ -112,21 +112,24 @@ export default function DashboardPage() {
   const getPaymentBadge = (sale: RecentSale) => {
     const method = sale.payments?.[0]?.method || sale.paymentMethod;
     let label = method;
-    let colorClass = "bg-slate-100 text-slate-700 border-slate-200";
+    let colorClass = "bg-muted text-muted-foreground border-border";
 
     if (method === "CASH") {
       label = "Dinheiro";
-      colorClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
+      colorClass =
+        "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
     } else if (method === "PIX") {
       label = "Pix";
-      colorClass = "bg-amber-100 text-amber-700 border-amber-200";
+      colorClass =
+        "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
     } else if (
       method.includes("CARD") ||
       method === "CREDIT" ||
       method === "DEBIT"
     ) {
       label = "Cartão";
-      colorClass = "bg-blue-100 text-blue-700 border-blue-200";
+      colorClass =
+        "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
     }
 
     return (
@@ -142,19 +145,21 @@ export default function DashboardPage() {
     <div className="space-y-6 pt-4 pr-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Dashboard
           </h1>
-          <p className="text-slate-500">Visão geral do desempenho de vendas.</p>
+          <p className="text-muted-foreground">
+            Visão geral do desempenho de vendas.
+          </p>
         </div>
-        <div className="flex bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+        <div className="flex bg-card p-1 rounded-lg border border-border shadow-sm">
           <Button
             variant={period === "today" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => setPeriod("today")}
             className={
               period === "today"
-                ? "bg-slate-900 text-white hover:bg-slate-800"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : ""
             }
           >
@@ -166,7 +171,7 @@ export default function DashboardPage() {
             onClick={() => setPeriod("week")}
             className={
               period === "week"
-                ? "bg-slate-900 text-white hover:bg-slate-800"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : ""
             }
           >
@@ -178,7 +183,7 @@ export default function DashboardPage() {
             onClick={() => setPeriod("month")}
             className={
               period === "month"
-                ? "bg-slate-900 text-white hover:bg-slate-800"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : ""
             }
           >
@@ -196,7 +201,7 @@ export default function DashboardPage() {
             currency: "BRL",
           })}
           icon={DollarSign}
-          iconColor="text-green-600"
+          iconColor="text-green-600 dark:text-green-400"
           description="No período selecionado"
           trend="+12%"
           trendType="up"
@@ -205,7 +210,7 @@ export default function DashboardPage() {
           title="Quantidade de Vendas"
           value={stats.count}
           icon={ShoppingBag}
-          iconColor="text-blue-600"
+          iconColor="text-blue-600 dark:text-blue-400"
           description="Transações realizadas"
         />
         <StatCard
@@ -215,7 +220,7 @@ export default function DashboardPage() {
             currency: "BRL",
           })}
           icon={CreditCard}
-          iconColor="text-orange-600"
+          iconColor="text-orange-600 dark:text-orange-400"
           description="Média por venda"
         />
       </div>
@@ -223,10 +228,10 @@ export default function DashboardPage() {
       {/* Charts & Recent Sales */}
       <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-7">
         {/* Chart Column */}
-        <Card className="lg:col-span-4 border-slate-200 shadow-sm">
+        <Card className="lg:col-span-4 border-border shadow-sm bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BarChart className="h-4 w-4 text-slate-500" />
+              <BarChart className="h-4 w-4 text-muted-foreground" />
               Desempenho de Vendas
             </CardTitle>
           </CardHeader>
@@ -234,7 +239,11 @@ export default function DashboardPage() {
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsBarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="var(--color-border)"
+                  />
                   <XAxis
                     dataKey="date"
                     tickFormatter={(value) =>
@@ -247,12 +256,14 @@ export default function DashboardPage() {
                     axisLine={false}
                     fontSize={12}
                     tickMargin={10}
+                    tick={{ fill: "var(--color-muted-foreground)" }}
                   />
                   <YAxis
                     tickFormatter={(value) => `R$${value}`}
                     tickLine={false}
                     axisLine={false}
                     fontSize={12}
+                    tick={{ fill: "var(--color-muted-foreground)" }}
                   />
                   <Tooltip
                     formatter={(value: number | undefined) => [
@@ -269,16 +280,18 @@ export default function DashboardPage() {
                         month: "long",
                       })
                     }
-                    cursor={{ fill: "#f1f5f9" }}
+                    cursor={{ fill: "var(--color-muted)" }}
                     contentStyle={{
+                      backgroundColor: "var(--color-popover)",
+                      color: "var(--color-popover-foreground)",
                       borderRadius: "8px",
-                      border: "none",
+                      border: "1px solid var(--color-border)",
                       boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                     }}
                   />
                   <Bar
                     dataKey="total"
-                    fill="#3b82f6"
+                    fill="var(--color-primary)"
                     radius={[4, 4, 0, 0]}
                     maxBarSize={50}
                   />
@@ -289,10 +302,10 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Sales Column */}
-        <Card className="lg:col-span-3 border-slate-200 shadow-sm">
+        <Card className="lg:col-span-3 border-border shadow-sm bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ShoppingBag className="h-4 w-4 text-slate-500" />
+              <ShoppingBag className="h-4 w-4 text-muted-foreground" />
               Últimas Vendas
             </CardTitle>
           </CardHeader>
@@ -301,17 +314,17 @@ export default function DashboardPage() {
               {recentSales.map((sale) => (
                 <div
                   key={sale.id}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100"
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                       <User className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-foreground">
                         {sale?.user?.name || "Vendedor"}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         {new Date(sale.createdAt).toLocaleTimeString("pt-BR", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -320,7 +333,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-sm font-bold text-slate-900">
+                    <span className="text-sm font-bold text-foreground">
                       {Number(sale.finalAmount).toLocaleString("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -331,7 +344,7 @@ export default function DashboardPage() {
                 </div>
               ))}
               {recentSales.length === 0 && (
-                <div className="text-center py-8 text-slate-400 text-sm">
+                <div className="text-center py-8 text-muted-foreground text-sm">
                   Nenhuma venda recente.
                 </div>
               )}

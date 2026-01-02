@@ -1,14 +1,13 @@
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 
-
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full bg-slate-50/50">
+    <div className="min-h-screen w-full bg-muted/30">
       {/* Sidebar - Desktop: Fixa, Mobile: Hidden (controlado pelo sheet/drawer se quiseres futuramente) */}
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <Sidebar />

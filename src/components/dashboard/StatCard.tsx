@@ -19,12 +19,12 @@ export function StatCard({
   description,
   trend,
   trendType = "neutral",
-  iconColor = "text-slate-500",
+  iconColor = "text-muted-foreground",
 }: StatCardProps) {
   return (
-    <Card className="hover:shadow-md transition-all duration-300 border-slate-200 shadow-sm bg-white group hover:-translate-y-1">
+    <Card className="hover:shadow-md transition-all duration-300 border-border shadow-sm bg-card group hover:-translate-y-1">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-slate-500 group-hover:text-slate-700 transition-colors">
+        <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
           {title}
         </CardTitle>
         <Icon
@@ -35,17 +35,17 @@ export function StatCard({
         />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-slate-900 group-hover:text-primary transition-colors">
+        <div className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
           {value}
         </div>
-        <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
           {trend && (
             <span
               className={cn(
                 "font-medium",
-                trendType === "up" && "text-green-600",
-                trendType === "down" && "text-red-600",
-                trendType === "neutral" && "text-slate-600"
+                trendType === "up" && "text-green-500",
+                trendType === "down" && "text-destructive",
+                trendType === "neutral" && "text-muted-foreground"
               )}
             >
               {trend}

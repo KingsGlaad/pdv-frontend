@@ -2,6 +2,8 @@
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { AuthProvider } from "@/providers/auth-provider";
+import { ConfigProvider } from "@/providers/config-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 export default function RootLayout({
   children,
@@ -11,10 +13,19 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        <AuthProvider>
-          {children}
-          <Toaster richColors theme="system"/>
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <ConfigProvider>
+              {children}
+              <Toaster richColors theme="system" />
+            </ConfigProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

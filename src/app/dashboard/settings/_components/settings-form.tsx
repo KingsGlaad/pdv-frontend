@@ -43,6 +43,7 @@ export function SettingsForm() {
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [configId, setConfigId] = useState<string | undefined>(undefined);
 
   const form = useForm<ConfigFormValues>({
     resolver: zodResolver(configSchema),
@@ -58,11 +59,20 @@ export function SettingsForm() {
     async function loadConfig() {
       try {
         const config = await configService.get();
+
+        if (!config) return;
+
+        setConfigId(config.id);
+        const validThemes = ["light", "dark", "system"];
+        const theme = validThemes.includes(config.theme)
+          ? config.theme
+          : "system";
+
         form.reset({
-          appName: config.appName,
-          theme: config.theme as "light" | "dark" | "system",
-          currency: config.currency,
-          logoUrl: config.logoUrl,
+          appName: config.appName || "",
+          theme: theme as "light" | "dark" | "system",
+          currency: config.currency || "BRL",
+          logoUrl: config.logoUrl || "",
         });
         if (config.logoUrl) {
           setPreviewUrl(config.logoUrl);
@@ -91,7 +101,6 @@ export function SettingsForm() {
       let finalLogoUrl = data.logoUrl;
 
       if (logoFile) {
-        // Upload logo first if changed
         try {
           // In a real scenario, we would upload here.
           // Since backend is not implemented, we mock the URL return or assume service handles it.
@@ -110,6 +119,7 @@ export function SettingsForm() {
 
       await configService.update({
         ...data,
+        id: configId,
         logoUrl: finalLogoUrl || undefined,
       });
 

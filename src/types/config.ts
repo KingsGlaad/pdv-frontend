@@ -9,6 +9,7 @@ export interface Config {
 }
 
 export interface UpdateConfigDto {
+  id?: string;
   appName?: string;
   theme?: "light" | "dark" | "system";
   currency?: string;

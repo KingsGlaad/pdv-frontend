@@ -87,8 +87,8 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
 
   if (isLoading || (loading && !error)) {
     return (
-      <div className="flex h-full items-center justify-center flex-col gap-4 text-slate-500">
-        <RefreshCw className="h-10 w-10 animate-spin text-blue-600" />
+      <div className="flex h-full items-center justify-center flex-col gap-4 text-muted-foreground">
+        <RefreshCw className="h-10 w-10 animate-spin text-primary" />
         <p className="font-medium">A conectar ao sistema...</p>
       </div>
     );
@@ -97,7 +97,7 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
   if (error) {
     return (
       <div className="flex h-full items-center justify-center flex-col gap-4">
-        <div className="text-red-500 flex flex-col items-center text-center max-w-md">
+        <div className="text-destructive flex flex-col items-center text-center max-w-md">
           <AlertCircle className="h-12 w-12 mb-2" />
           <p className="text-lg font-bold">{error}</p>
           {error.includes("Sessão expirada") && (
@@ -117,13 +117,13 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
   }
 
   return (
-    <div className="flex h-full items-center justify-center bg-slate-100 p-6 overflow-auto">
+    <div className="flex h-full items-center justify-center bg-background p-6 overflow-auto">
       <div className="w-full max-w-5xl">
         <div className="mb-10 text-center">
-          <h1 className="text-4xl font-extrabold text-slate-800 mb-2 tracking-tight">
+          <h1 className="text-4xl font-extrabold text-foreground mb-2 tracking-tight">
             Frente de Caixa
           </h1>
-          <p className="text-slate-500 text-lg">
+          <p className="text-muted-foreground text-lg">
             Selecione um terminal para iniciar ou continuar as vendas
           </p>
         </div>
@@ -140,12 +140,12 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
                 key={reg.id}
                 onClick={() => !isLocked && handleSelect(reg)}
                 className={cn(
-                  "relative bg-white rounded-2xl shadow-sm border-2 p-6 transition-all duration-200 cursor-pointer group flex flex-col justify-between min-h-[200px]",
+                  "relative bg-card rounded-2xl shadow-sm border-2 p-6 transition-all duration-200 cursor-pointer group flex flex-col justify-between min-h-[200px]",
                   isLocked
-                    ? "opacity-60 border-slate-200 grayscale-[0.8] cursor-not-allowed"
+                    ? "opacity-60 border-border grayscale-[0.8] cursor-not-allowed"
                     : reg.isOpen
-                    ? "border-green-500 bg-green-50/20 hover:shadow-lg hover:-translate-y-1"
-                    : "border-slate-200 hover:border-blue-500 hover:shadow-lg hover:-translate-y-1"
+                    ? "border-green-500 bg-green-500/10 hover:shadow-lg hover:-translate-y-1"
+                    : "border-border hover:border-primary hover:shadow-lg hover:-translate-y-1"
                 )}
               >
                 <div>
@@ -154,8 +154,8 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
                       className={cn(
                         "h-14 w-14 rounded-xl flex items-center justify-center shadow-sm",
                         reg.isOpen
-                          ? "bg-green-100 text-green-600"
-                          : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600"
+                          ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                          : "bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
                       )}
                     >
                       <Store className="h-7 w-7" />
@@ -164,8 +164,8 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
                       className={cn(
                         "px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm border",
                         reg.isOpen
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : "bg-slate-100 text-slate-600 border-slate-200"
+                          ? "bg-green-500/20 text-green-800 dark:text-green-200 border-green-500/30"
+                          : "bg-muted text-muted-foreground border-border"
                       )}
                     >
                       {reg.isOpen ? (
@@ -177,15 +177,15 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
                     </div>
                   </div>
 
-                  <h3 className="text-2xl font-bold text-slate-800 mb-1">
+                  <h3 className="text-2xl font-bold text-foreground mb-1">
                     {reg.name}
                   </h3>
                 </div>
 
                 {reg.isOpen ? (
-                  <div className="text-sm text-slate-600 mt-6 pt-4 border-t border-slate-200/60 bg-white/50 rounded-b-xl">
+                  <div className="text-sm text-muted-foreground mt-6 pt-4 border-t border-border/60 bg-card/50 rounded-b-xl">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="bg-slate-200 p-1 rounded-full">
+                      <div className="bg-muted p-1 rounded-full">
                         <User className="h-3.5 w-3.5" />
                       </div>
                       <span className="font-semibold truncate">
@@ -194,7 +194,7 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
                           : reg.currentOperatorName || "Desconhecido"}
                       </span>
                     </div>
-                    <div className="text-xs text-slate-500 pl-8">
+                    <div className="text-xs text-muted-foreground pl-8">
                       Aberto às{" "}
                       {reg.openedAt
                         ? new Date(reg.openedAt).toLocaleTimeString([], {
@@ -205,14 +205,14 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-slate-400 mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 group-hover:text-blue-600">
-                    <div className="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-blue-500"></div>
+                  <div className="text-sm text-muted-foreground mt-6 pt-4 border-t border-border/50 flex items-center gap-2 group-hover:text-primary">
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/30 group-hover:bg-primary"></div>
                     Disponível para abertura
                   </div>
                 )}
 
                 {reg.isOpen && !isMySession && isAdmin && (
-                  <div className="absolute top-4 right-4 bg-yellow-100 text-yellow-800 text-[10px] uppercase font-bold px-2 py-1 rounded border border-yellow-300 shadow-sm z-10">
+                  <div className="absolute top-4 right-4 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[10px] uppercase font-bold px-2 py-1 rounded border border-yellow-500/30 shadow-sm z-10">
                     Acesso Admin
                   </div>
                 )}
