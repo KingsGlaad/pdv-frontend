@@ -2,20 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Package, 
-  Users, 
-  Settings, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Users,
+  Settings,
+  BarChart3,
   Store,
   LogOut,
-  History,
-  Wallet
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 const menuItems = [
   {
@@ -23,22 +21,21 @@ const menuItems = [
     items: [
       { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { name: "Frente de Caixa", href: "/pdv", icon: Store, highlight: true },
-    ]
+    ],
   },
   {
     category: "Gestão",
     items: [
       { name: "Vendas", href: "/dashboard/sales", icon: ShoppingCart },
       { name: "Produtos", href: "/dashboard/products", icon: Package },
-      { name: "Clientes", href: "/dashboard/customers", icon: Users },
-    ]
+    ],
   },
   {
     category: "Financeiro",
     items: [
       { name: "Fluxo de Caixa", href: "/dashboard/finance", icon: Wallet },
       { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
-    ]
+    ],
   },
 ];
 
@@ -49,7 +46,10 @@ export function Sidebar() {
     <div className="flex h-full flex-col border-r bg-white text-slate-900 shadow-sm">
       {/* Logo Area */}
       <div className="flex h-16 items-center border-b px-6">
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 font-bold text-xl text-primary"
+        >
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-white">
             KG
           </div>
@@ -69,7 +69,7 @@ export function Sidebar() {
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
-                  
+
                   return (
                     <Link
                       key={item.href}
@@ -77,10 +77,20 @@ export function Sidebar() {
                       className={cn(
                         "group flex items-center gap-3 rounded-md px-3 py-2 text-slate-600 transition-all hover:text-primary hover:bg-slate-50",
                         isActive && "bg-primary/10 text-primary font-semibold",
-                        item.highlight && "bg-blue-600 text-white hover:bg-blue-700 hover:text-white shadow-md shadow-blue-200 mt-2 mb-2 justify-center"
+                        item.highlight &&
+                          "bg-blue-600 text-white hover:bg-blue-700 hover:text-white shadow-md shadow-blue-200 mt-2 mb-2 justify-center"
                       )}
                     >
-                      <Icon className={cn("h-4 w-4", item.highlight ? "text-white" : isActive ? "text-primary" : "text-slate-500 group-hover:text-primary")} />
+                      <Icon
+                        className={cn(
+                          "h-4 w-4",
+                          item.highlight
+                            ? "text-white"
+                            : isActive
+                            ? "text-primary"
+                            : "text-slate-500 group-hover:text-primary"
+                        )}
+                      />
                       <span>{item.name}</span>
                     </Link>
                   );
