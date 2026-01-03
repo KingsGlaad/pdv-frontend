@@ -3,7 +3,6 @@ import { Config, UpdateConfigDto } from "@/types/config";
 
 export const configService = {
   async get() {
-    // Fallback to default if API fails (or for initial dev)
     try {
       const { data } = await api.get<Config>("/settings");
       return (

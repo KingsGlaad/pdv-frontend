@@ -4,6 +4,13 @@ export interface Config {
   logoUrl?: string | null;
   theme: "light" | "dark" | "system";
   currency: string;
+  companyName?: string;
+  tradingName?: string;
+  cnpj?: string;
+  stateRegistration?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -13,5 +20,12 @@ export interface UpdateConfigDto {
   appName?: string;
   theme?: "light" | "dark" | "system";
   currency?: string;
-  logoUrl?: string; // URL after upload
+  logoUrl?: string | null; // URL after upload
+  companyName?: string;
+  tradingName?: string;
+  cnpj?: string;
+  stateRegistration?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
 }

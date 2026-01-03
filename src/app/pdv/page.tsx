@@ -3,7 +3,7 @@ import { PDVInterface } from "./_components/pdvInterface";
 import { PDVHeader } from "./_components/pdv-header";
 
 export const metadata: Metadata = {
-  title: "Frente de Caixa | KingsGlaad PDV",
+  title: { template: "%s | %s", default: "Frente de Caixa" },
   description: "Sistema de Ponto de Venda ágil e moderno.",
 };
 

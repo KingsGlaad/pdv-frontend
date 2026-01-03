@@ -18,7 +18,6 @@ import { api } from "@/services/api";
 import { RegisterSelector } from "./RegisterSelectorProps";
 import { ReasonModal } from "./ReasonModalProps";
 import { toast } from "sonner";
-import { PDVHeader } from "./pdv-header";
 import { ActionButtons } from "./ActionButtons";
 import { CommandasList } from "./CommandasList";
 import { ShortcutsHandler } from "./ShortcutsHandler";
@@ -70,7 +69,6 @@ export function PDVInterface() {
   const fetchCommandas = async () => {
     try {
       const response = await api.get("/orders/open");
-      // Filter only open orders if needed, assuming backend returns all or filted
       setCommandas(response.data);
     } catch (error) {
       console.error("Erro ao buscar comandas:", error);
@@ -112,7 +110,6 @@ export function PDVInterface() {
       setShowOpeningModal(true);
     } else {
       setIsRegisterOpen(true);
-      // Aqui poderíamos buscar o estado atual do carrinho do servidor se houvesse persistência
     }
   };
 
@@ -350,6 +347,7 @@ export function PDVInterface() {
           saleMode === "COMMAND" && commandNumber
             ? parseInt(commandNumber)
             : undefined,
+        terminalId: activeRegisterId,
       };
 
       await api.post("/orders/direct-sale", payload);
@@ -384,7 +382,7 @@ export function PDVInterface() {
     setLastChange(0);
     setSuggestions([]);
     setSearchQuery("");
-    setSaleMode(null);
+    setSaleMode("DIRECT");
     setCommandNumber("");
     setTimeout(() => searchInputRef.current?.focus(), 100);
   };

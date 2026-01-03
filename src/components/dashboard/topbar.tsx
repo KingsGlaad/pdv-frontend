@@ -12,6 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sidebar } from "./sidebar";
 
 export function Topbar() {
   const { user, signout } = useAuth();
@@ -19,10 +21,17 @@ export function Topbar() {
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center gap-4 border-b border-border bg-background px-6 shadow-sm">
       {/* Mobile Menu Trigger (Visível apenas em mobile) */}
-      <Button variant="ghost" size="icon" className="md:hidden">
-        <Menu className="h-5 w-5" />
-        <span className="sr-only">Toggle menu</span>
-      </Button>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-0 w-72">
+          <Sidebar />
+        </SheetContent>
+      </Sheet>
 
       {/* Search Bar */}
       <div className="w-full flex-1 md:w-auto md:flex-none">

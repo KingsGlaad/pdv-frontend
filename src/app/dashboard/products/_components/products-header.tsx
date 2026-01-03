@@ -9,8 +9,8 @@ interface ProductsHeaderProps {
 export function ProductsHeader({ onRefresh, loading }: ProductsHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-        <Package className="h-5 w-5 text-slate-500" />
+      <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+        <Package className="h-5 w-5 text-muted-foreground" />
         Produtos
       </h2>
       <Button

@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/uploads/:path*",
-        destination: "http://localhost:3333/uploads/:path*", // Serve arquivos estáticos do backend
+        destination: "http://localhost:3000/uploads/:path*", // Serve arquivos estáticos do backend
       },
     ];
   },

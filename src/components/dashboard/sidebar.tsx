@@ -19,8 +19,11 @@ import { useConfig } from "@/providers/config-provider";
 const menuItems = [
   {
     category: "Geral",
+    items: [{ name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
+  },
+  {
+    category: "PDV",
     items: [
-      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { name: "Frente de Caixa", href: "/pdv", icon: Store, highlight: true },
     ],
   },
@@ -76,7 +79,13 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="grid items-start px-4 text-sm font-medium">
           {menuItems.map((group, index) => (
-            <div key={index} className="mb-6">
+            <div
+              key={index}
+              className={cn(
+                "mb-6",
+                group.category === "PDV" && "hidden md:block"
+              )}
+            >
               <h3 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {group.category}
               </h3>

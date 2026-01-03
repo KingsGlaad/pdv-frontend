@@ -1,10 +1,13 @@
 // f:\Projetos\costela\pdv-frontend\src\app\pdv\_components\pdv-header.tsx
 "use client";
 
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useConfig } from "@/providers/config-provider";
 import Image from "next/image";
+import { useState } from "react";
+import { PrinterSettingsModal } from "./printer-settings-modal";
+import { useTerminalId } from "@/hooks/use-terminal-id";
 
 interface PDVHeaderProps {
   date: string;
@@ -13,6 +16,8 @@ interface PDVHeaderProps {
 export function PDVHeader({ date }: PDVHeaderProps) {
   const { user, signout } = useAuth();
   const { config } = useConfig();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const terminalId = useTerminalId();
 
   const appName = config?.appName || "PDV";
   const initials = appName
@@ -67,6 +72,17 @@ export function PDVHeader({ date }: PDVHeaderProps) {
           <span className="text-green-500">●</span> Online
         </div>
         <div className="text-xs text-muted-foreground font-mono">{date}</div>
+
+        {user?.role === "ADMIN" && (
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="ml-2 hover:bg-accent p-2 rounded-full transition-colors text-muted-foreground hover:text-foreground"
+            title="Configurações"
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+        )}
+
         <button
           onClick={signout}
           className="ml-2 hover:bg-accent p-2 rounded-full transition-colors text-muted-foreground hover:text-foreground"
@@ -75,6 +91,12 @@ export function PDVHeader({ date }: PDVHeaderProps) {
           <LogOut className="h-5 w-5" />
         </button>
       </div>
+
+      <PrinterSettingsModal
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        terminalId={terminalId}
+      />
     </header>
   );
 }
