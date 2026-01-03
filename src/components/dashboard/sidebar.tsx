@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   ShoppingCart,
   Package,
-  Users,
   Settings,
   BarChart3,
   Store,
@@ -19,7 +18,14 @@ import { useConfig } from "@/providers/config-provider";
 const menuItems = [
   {
     category: "Geral",
-    items: [{ name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
+    items: [
+      {
+        name: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        highlight: false,
+      },
+    ],
   },
   {
     category: "PDV",
@@ -30,15 +36,35 @@ const menuItems = [
   {
     category: "Gestão",
     items: [
-      { name: "Vendas", href: "/dashboard/sales", icon: ShoppingCart },
-      { name: "Produtos", href: "/dashboard/products", icon: Package },
+      {
+        name: "Vendas",
+        href: "/dashboard/sales",
+        icon: ShoppingCart,
+        highlight: false,
+      },
+      {
+        name: "Produtos",
+        href: "/dashboard/products",
+        icon: Package,
+        highlight: false,
+      },
     ],
   },
   {
     category: "Financeiro",
     items: [
-      { name: "Fluxo de Caixa", href: "/dashboard/finance", icon: Wallet },
-      { name: "Relatórios", href: "/dashboard/reports", icon: BarChart3 },
+      {
+        name: "Fluxo de Caixa",
+        href: "/dashboard/finance",
+        icon: Wallet,
+        highlight: false,
+      },
+      {
+        name: "Relatórios",
+        href: "/dashboard/reports",
+        icon: BarChart3,
+        highlight: false,
+      },
     ],
   },
 ];
@@ -48,12 +74,12 @@ export function Sidebar() {
   const { config } = useConfig();
 
   return (
-    <div className="flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm">
+    <div className="flex h-full flex-col border-r border-sidebar-border bg-sidebar shadow-sm">
       {/* Logo Area */}
       <div className="flex h-16 items-center border-b border-sidebar-border px-6">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 font-bold text-xl text-sidebar-primary"
+          className="flex items-center gap-2 font-bold text-xl"
         >
           {config?.logoUrl ? (
             <div className="relative h-8 w-8 overflow-hidden rounded-lg">
@@ -65,7 +91,7 @@ export function Sidebar() {
               />
             </div>
           ) : (
-            <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground">
+            <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
               {config?.appName
                 ? config.appName.substring(0, 2).toUpperCase()
                 : "KG"}
@@ -100,8 +126,7 @@ export function Sidebar() {
                       href={item.href}
                       className={cn(
                         "group flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-all hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
-                        isActive &&
-                          "bg-sidebar-accent text-sidebar-primary font-semibold",
+                        isActive && "bg-sidebar-accent  font-semibold",
                         item.highlight &&
                           "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground shadow-md shadow-primary/20 mt-2 mb-2 justify-center"
                       )}
@@ -112,8 +137,8 @@ export function Sidebar() {
                           item.highlight
                             ? "text-primary-foreground"
                             : isActive
-                            ? "text-sidebar-primary"
-                            : "text-muted-foreground group-hover:text-sidebar-primary"
+                            ? ""
+                            : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
                         )}
                       />
                       <span>{item.name}</span>
@@ -131,7 +156,7 @@ export function Sidebar() {
         <nav className="grid gap-1">
           <Link
             href="/dashboard/settings"
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-primary transition-all"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all"
           >
             <Settings className="h-4 w-4" />
             Configurações
