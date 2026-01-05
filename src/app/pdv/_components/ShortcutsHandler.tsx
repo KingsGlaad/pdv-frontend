@@ -4,6 +4,7 @@ import { useEffect } from "react";
 interface ShortcutsHandlerProps {
   onF1?: () => void;
   onF2?: () => void; // Search focus
+  onF8?: () => void; // Cashier Functions
   onF9?: () => void; // Finalize
   onEscape?: () => void;
 }
@@ -11,6 +12,7 @@ interface ShortcutsHandlerProps {
 export function ShortcutsHandler({
   onF1,
   onF2,
+  onF8,
   onF9,
   onEscape,
 }: ShortcutsHandlerProps) {
@@ -25,6 +27,10 @@ export function ShortcutsHandler({
           e.preventDefault();
           onF2?.();
           break;
+        case "F8":
+          e.preventDefault();
+          onF8?.();
+          break;
         case "F9":
           e.preventDefault();
           onF9?.();
@@ -38,7 +44,7 @@ export function ShortcutsHandler({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onF1, onF2, onF9, onEscape]);
+  }, [onF1, onF2, onF8, onF9, onEscape]);
 
   return null;
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { DataTable } from "./_components/table/data-table";
+import { DataTable } from "@/components/ui/data-table";
 import { ProductForm } from "./_components/product-form";
 import { productsService } from "@/services/products.service";
 import { Product, CreateProductDto } from "@/types/product";
@@ -124,6 +124,7 @@ export default function ProductsPage() {
         isLoading={loading}
         searchPlaceholder="Buscar por nome ou código..."
         onAddClick={handleCreate}
+        addButtonLabel="Novo Produto"
       />
 
       <ProductForm

@@ -17,7 +17,7 @@ export interface Comanda {
 
 interface CommandasListProps {
   commandas: Comanda[];
-  onSelectComanda: (comandaNumber: string | number) => void;
+  onSelectComanda: (comandaNumber: string | number, id?: string) => void;
   onRefresh: () => void;
 }
 
@@ -66,7 +66,7 @@ export function CommandasList({
             <div
               key={c.id}
               className="p-3 border border-border rounded-lg hover:bg-primary/10 hover:border-primary/50 cursor-pointer transition-colors bg-card shadow-sm"
-              onClick={() => onSelectComanda(c.number)}
+              onClick={() => onSelectComanda(c.number, c.id)}
             >
               <div className="flex justify-between items-center mb-1">
                 <span className="font-bold text-lg text-card-foreground">

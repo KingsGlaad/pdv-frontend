@@ -30,6 +30,7 @@ interface DataTableProps<T> {
   isLoading?: boolean;
   extraFilters?: ReactNode;
   onAddClick?: () => void;
+  addButtonLabel?: string;
 }
 
 export function DataTable<T extends { id?: string | number }>({
@@ -44,6 +45,7 @@ export function DataTable<T extends { id?: string | number }>({
   isLoading,
   extraFilters,
   onAddClick,
+  addButtonLabel = "Adicionar",
 }: DataTableProps<T>) {
   const safeData = data || [];
   const totalPages = Math.ceil(total / limit);
@@ -67,7 +69,7 @@ export function DataTable<T extends { id?: string | number }>({
               onClick={onAddClick}
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              Novo Produto
+              {addButtonLabel}
             </Button>
           )}
         </div>

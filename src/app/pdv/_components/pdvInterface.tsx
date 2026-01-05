@@ -22,6 +22,7 @@ import { ActionButtons } from "./ActionButtons";
 import { CommandasList } from "./CommandasList";
 import { ShortcutsHandler } from "./ShortcutsHandler";
 import { SaleSuccessModal } from "./SaleSuccessModal";
+import { CashierFunctionsDialog } from "./CashierFunctionsDialog";
 
 // Tipos
 interface Product {
@@ -96,6 +97,8 @@ export function PDVInterface() {
   const [showCancelSaleModal, setShowCancelSaleModal] = useState(false);
   const [showRemoveItemModal, setShowRemoveItemModal] = useState(false);
   const [itemToRemoveId, setItemToRemoveId] = useState<string | null>(null);
+  const [showCashierFunctionsModal, setShowCashierFunctionsModal] =
+    useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -215,14 +218,34 @@ export function PDVInterface() {
 
   // --- POLLING ATIVO PARA COMANDA SELECIONADA ---
   useEffect(() => {
-    let interval: NodeJS.Timeout;
     if (saleMode === "COMMAND" && activeComandaId) {
       const fetchActiveOrder = async () => {
         try {
+          const response = await api.get(`/orders/${activeComandaId}`);
+          if (response.data && response.data.items) {
+            const mappedItems: CartItem[] = response.data.items.map(
+              (item: any) => ({
+                id: item.product.id,
+                code: item.product.code,
+                name: item.product.name,
+                price: Number(item.price), // Uses order item price (snapshot)
+                stock: item.product.stock,
+                imageUrl: item.product.imageUrl,
+                quantity: item.quantity,
+                uuid: crypto.randomUUID(),
+              })
+            );
+            setCart(mappedItems);
+          }
         } catch (e) {
           console.error(e);
+          toast.error("Erro ao carregar itens da comanda");
         }
       };
+
+      fetchActiveOrder();
+      // Optional: Poll every few seconds to keep in sync with other waiters?
+      const interval = setInterval(fetchActiveOrder, 5000);
     }
   }, [saleMode, activeComandaId]);
 
@@ -560,25 +583,40 @@ export function PDVInterface() {
     <div className="flex h-full gap-4 p-4 relative bg-muted/30">
       <ShortcutsHandler
         onF2={() => searchInputRef.current?.focus()}
+        onF8={() => setShowCashierFunctionsModal(true)}
         onF9={() => {
           if (cart.length > 0) setIsFinalizing(true);
         }}
         onEscape={() => {
           if (showClosingModal) setShowClosingModal(false);
-          if (showOpeningModal) setShowOpeningModal(false); // maybe not if forced?
+          if (showOpeningModal) setShowOpeningModal(false);
           if (isFinalizing) setIsFinalizing(false);
           if (selectedPayment) setSelectedPayment(null);
           if (showCancelSaleModal) setShowCancelSaleModal(false);
           if (showRemoveItemModal) setShowRemoveItemModal(false);
+          if (showCashierFunctionsModal) setShowCashierFunctionsModal(false);
         }}
+      />
+
+      <CashierFunctionsDialog
+        isOpen={showCashierFunctionsModal}
+        onClose={() => setShowCashierFunctionsModal(false)}
       />
 
       {isRegisterOpen && (
         <CommandasList
           commandas={commandas}
           onRefresh={fetchCommandas}
-          onSelectComanda={(num) => {
+          onSelectComanda={(num, id) => {
+            setCart([]); // Clear cart before loading command
             setCommandNumber(num.toString());
+            // Se veio ID, usa. Senão tenta achar na lista
+            if (id) {
+              setActiveComandaId(id);
+            } else {
+              const found = commandas.find((c) => c.number == num);
+              if (found) setActiveComandaId(found.id);
+            }
             setSaleMode("COMMAND");
             setTimeout(() => searchInputRef.current?.focus(), 100);
           }}

@@ -272,6 +272,28 @@ export function PrinterSettingsModal({
             >
               Cancelar
             </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={async () => {
+                const config = watch();
+                setLoading(true);
+                try {
+                  await printerService.testPrinter(config);
+                  toast.success("Teste enviado para impressora");
+                } catch (error) {
+                  console.error(error);
+                  toast.error("Erro ao testar impressora");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              className="mr-auto"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Testar Impressora
+            </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar

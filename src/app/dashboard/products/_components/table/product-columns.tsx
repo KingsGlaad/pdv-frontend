@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Product } from "@/types/product";
 import { Package, Pencil, Trash2 } from "lucide-react";
-import { ColumnDef } from "./data-table";
+import { ColumnDef } from "@/components/ui/data-table";
 import Image from "next/image";
 
 interface GetProductColumnsProps {

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Receipt, Share2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface SaleSuccessModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface SaleSuccessModalProps {
   change?: number; // Troco (opcional se não tiver calculo)
   onNewSale: () => void;
   onClose: () => void;
+  saleId?: string;
 }
 
 export function SaleSuccessModal({
@@ -17,7 +19,20 @@ export function SaleSuccessModal({
   change = 0,
   onNewSale,
   onClose,
+  saleId,
 }: SaleSuccessModalProps) {
+  const handleReprint = async () => {
+    if (!saleId) return;
+    // Import printerService logic here or pass handler?
+    // Better to import service directly as this is a client component.
+    try {
+      const { printerService } = await import("@/services/printer.service");
+      await printerService.reprintSale(saleId);
+      toast.success("Comprovante reimpreso com sucesso!");
+    } catch (e) {
+      console.error(e);
+    }
+  };
   if (!isOpen) return null;
 
   return (
@@ -63,7 +78,8 @@ export function SaleSuccessModal({
           <Button
             variant="outline"
             className="h-12 border-border hover:bg-muted text-muted-foreground gap-2"
-            onClick={onClose} // Apenas fecha, mantem na tela se quiser ver
+            onClick={handleReprint}
+            disabled={!saleId}
           >
             <Receipt className="h-4 w-4" /> Comprovante
           </Button>

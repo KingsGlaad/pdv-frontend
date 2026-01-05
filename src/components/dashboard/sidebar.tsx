@@ -11,6 +11,8 @@ import {
   Store,
   LogOut,
   Wallet,
+  User,
+  Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConfig } from "@/providers/config-provider";
@@ -34,6 +36,17 @@ const menuItems = [
     ],
   },
   {
+    category: "Recursos Humanos",
+    items: [
+      {
+        name: "Funcionários",
+        href: "/dashboard/users",
+        icon: User,
+        highlight: false,
+      },
+    ],
+  },
+  {
     category: "Gestão",
     items: [
       {
@@ -42,6 +55,7 @@ const menuItems = [
         icon: ShoppingCart,
         highlight: false,
       },
+
       {
         name: "Produtos",
         href: "/dashboard/products",
@@ -54,8 +68,14 @@ const menuItems = [
     category: "Financeiro",
     items: [
       {
+        name: "Financeiro", // Added Financeiro link
+        href: "/dashboard/financial",
+        icon: Calculator,
+        highlight: false,
+      },
+      {
         name: "Fluxo de Caixa",
-        href: "/dashboard/finance",
+        href: "/dashboard/financial/cash-flow",
         icon: Wallet,
         highlight: false,
       },

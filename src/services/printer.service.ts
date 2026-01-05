@@ -13,19 +13,32 @@ export interface PrinterConfig {
 
 export const printerService = {
   getAvailablePrinters: async (): Promise<string[]> => {
-    const response = await api.get("/settings/printers/available");
+    const response = await api.get("/printer/available");
     return response.data;
   },
 
   getPrinterConfig: async (
     terminalId: string
   ): Promise<PrinterConfig | null> => {
-    const response = await api.get(`/settings/printers/${terminalId}`);
+    const response = await api.get(`/printer/config/${terminalId}`);
     return response.data;
   },
 
   savePrinterConfig: async (config: PrinterConfig): Promise<PrinterConfig> => {
-    const response = await api.post("/settings/printers", config);
+    const response = await api.post("/printer/config", config);
     return response.data;
+  },
+
+  testPrinter: async (config: PrinterConfig): Promise<void> => {
+    await api.post("/printer/test", config);
+  },
+  async reprintSale(saleId: string, terminalId?: string): Promise<boolean> {
+    try {
+      await api.post(`/printer/reprint/${saleId}`, { terminalId });
+      return true;
+    } catch (error) {
+      console.error("Failed to reprint:", error);
+      return false;
+    }
   },
 };
