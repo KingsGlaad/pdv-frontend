@@ -51,10 +51,7 @@ export default function FinancialPage() {
   const handleExport = async () => {
     try {
       setLoading(true);
-      // Fetch all data for export (or a reasonable limit)
-      // For now, let's just export current view or maybe simplified all if API supports it.
-      // Ideally API should support export or we fetch large limit.
-      // Let's fetch with limit 1000 for export demo.
+
       const response = await salesService.getAll({
         page: 1,
         limit: 1000,
@@ -63,29 +60,61 @@ export default function FinancialPage() {
         endDate: endDate || undefined,
       });
 
+      // 1️⃣ Calcula o total das vendas (valor bruto)
+      const totalVendas = response.data.reduce(
+        (acc, sale) => acc + Number(sale.finalAmount || 0),
+        0
+      );
+
+      // 2️⃣ Mapeia os dados
       const dataToExport = response.data.map((sale) => ({
-        Código: sale.code,
         Data: new Date(sale.createdAt).toLocaleString("pt-BR"),
-        "Valor Total": Number(sale.finalAmount),
-        "Forma de Pagamento": sale.paymentMethod,
-        Status: sale.status,
+        Caixa: sale.user?.name || "",
+        "Valor Total": Number(sale.finalAmount).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }),
+        Desconto: Number(sale.discount).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }),
+        "Forma de Pagamento": sale.payments?.[0]?.method || "",
+        Status: sale.status as string,
       }));
+
+      // 3️⃣ Adiciona linha de total no final
+      dataToExport.push({
+        Data: "",
+        Caixa: "TOTAL GERAL",
+        "Valor Total": totalVendas.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }),
+        Desconto: "",
+        "Forma de Pagamento": "",
+        Status: "",
+      });
 
       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Vendas");
 
-      // Auto-width columns
-      const max_width = dataToExport.reduce(
-        (w, r) => Math.max(w, r["Código"].length),
-        10
-      );
-      worksheet["!cols"] = [{ wch: max_width }];
+      // (Opcional, mas recomendado) Auto-width simples
+      worksheet["!cols"] = [
+        { wch: 15 },
+        { wch: 22 },
+        { wch: 20 },
+        { wch: 18 },
+        { wch: 15 },
+        { wch: 22 },
+        { wch: 15 },
+      ];
 
       XLSX.writeFile(
         workbook,
         `Vendas_${new Date().toISOString().split("T")[0]}.xlsx`
       );
+
       toast.success("Relatório exportado com sucesso!");
     } catch (error) {
       console.error(error);

@@ -13,6 +13,7 @@ import {
   Wallet,
   User,
   Calculator,
+  HelpCircleIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useConfig } from "@/providers/config-provider";
@@ -80,8 +81,8 @@ const menuItems = [
         highlight: false,
       },
       {
-        name: "Relatórios",
-        href: "/dashboard/reports",
+        name: "Relatórios - Em desenvolvimento",
+        href: "#",
         icon: BarChart3,
         highlight: false,
       },
@@ -148,7 +149,8 @@ export function Sidebar() {
                         "group flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-all hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                         isActive && "bg-sidebar-accent  font-semibold",
                         item.highlight &&
-                          "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground shadow-md shadow-primary/20 mt-2 mb-2 justify-center"
+                          "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground shadow-md shadow-primary/20 mt-2 mb-2 justify-center",
+                        item.href === "#" && "opacity-50 cursor-not-allowed"
                       )}
                     >
                       <Icon
@@ -181,10 +183,13 @@ export function Sidebar() {
             <Settings className="h-4 w-4" />
             Configurações
           </Link>
-          <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-destructive hover:bg-destructive/10 transition-all text-left">
-            <LogOut className="h-4 w-4" />
-            Sair
-          </button>
+          <Link
+            href="/dashboard/help"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all"
+          >
+            <HelpCircleIcon className="h-4 w-4" />
+            Ajuda
+          </Link>
         </nav>
       </div>
     </div>

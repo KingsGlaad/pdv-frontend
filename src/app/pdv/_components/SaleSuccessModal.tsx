@@ -23,8 +23,6 @@ export function SaleSuccessModal({
 }: SaleSuccessModalProps) {
   const handleReprint = async () => {
     if (!saleId) return;
-    // Import printerService logic here or pass handler?
-    // Better to import service directly as this is a client component.
     try {
       const { printerService } = await import("@/services/printer.service");
       await printerService.reprintSale(saleId);

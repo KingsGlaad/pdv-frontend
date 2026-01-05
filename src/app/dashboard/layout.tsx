@@ -1,6 +1,30 @@
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 
+export const metadata = {
+  title: "Dashboard",
+  description: "Dashboard",
+  keywords: ["Dashboard", "Costela", "PDV"],
+  icons: {
+    icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Dashboard",
+    description: "Dashboard",
+    type: "website",
+    locale: "pt-BR",
+    siteName: "Costela PDV",
+    url: "https://costela.pdv",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Costela PDV",
+      },
+    ],
+  },
+};
 export default function DashboardLayout({
   children,
 }: {

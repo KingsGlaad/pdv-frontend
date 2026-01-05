@@ -67,6 +67,7 @@ export function PDVInterface() {
   const [saleMode, setSaleMode] = useState<SaleMode | null>("DIRECT"); // Default to Direct
   const [commandNumber, setCommandNumber] = useState<string>("");
   const [activeComandaId, setActiveComandaId] = useState<string | null>(null);
+  const [activeSaleId, setActiveSaleId] = useState<string | null>(null);
   const [commandas, setCommandas] = useState<any[]>([]);
 
   const fetchCommandas = async () => {
@@ -89,15 +90,9 @@ export function PDVInterface() {
         });
 
         socket.on("orders:update", (data: any) => {
-          // Update list
           fetchCommandas();
-
-          // If this is the active comanda, update the cart
           if (saleMode === "COMMAND" && activeComandaId === data.id) {
-            // Re-fetch active order logic (or use data if it has items)
-            // For simplicity, we trigger the fetch logic below or just call it directly if we extract it.
-            // But since 'activeComandaId' is a dependency of another effect, we might just need to signal it.
-            // Ideally, we can just trigger a re-fetch.
+            //handleAddToCart(data.items);
           }
         });
       }
@@ -184,8 +179,6 @@ export function PDVInterface() {
     setSuggestions([]);
 
     try {
-      // 1. Verificar lógica de Qtd * Código
-      // Regex ajustado para capturar quantidade opcional
       const qtyMatch = query.match(/^(\d+)\*(.+)$/);
       let quantity = 1;
       let actualCode = query;
@@ -202,19 +195,15 @@ export function PDVInterface() {
         const responseCode = await api.get(`/product/code/${actualCode}`);
         productData = responseCode.data;
       } catch (error) {
-        // Se falhar e não for comando de qtd, tenta busca textual exata
         if (!qtyMatch) {
           try {
             const responseSearch = await api.get(
               `/product?search=${actualCode}`
             );
             if (responseSearch.data && responseSearch.data.length > 0) {
-              // Pega o primeiro apenas se não houver ambiguidade clara ou se for o único
               productData = responseSearch.data[0];
             }
-          } catch (err) {
-            // Ignora erro de busca aqui
-          }
+          } catch (err) {}
         }
       }
 
@@ -410,10 +399,11 @@ export function PDVInterface() {
         terminalId: activeRegisterId,
       };
 
-      await api.post("/orders/direct-sale", payload);
+      const response = await api.post("/orders/direct-sale", payload);
 
       // Sucesso!
       setLastSaleTotal(total);
+      setActiveSaleId(response.data.saleId);
 
       // Calculate change
       let changeVal = 0;
@@ -765,13 +755,13 @@ export function PDVInterface() {
       />
 
       {/* MODAL: SUCESSO VENDA */}
-      {/* MODAL: SUCESSO VENDA */}
       <SaleSuccessModal
         isOpen={showSuccessModal}
         total={lastSaleTotal}
         change={lastChange}
         onNewSale={startNewSale}
         onClose={() => setShowSuccessModal(false)}
+        saleId={activeSaleId as string}
       />
 
       {/* --- COLUNA ESQUERDA: PRODUTOS --- */}
