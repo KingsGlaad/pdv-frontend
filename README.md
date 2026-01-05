@@ -63,7 +63,7 @@ System for point of sale (PDV) management, featuring a modern dashboard for sale
 1. Clone the repository:
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/KingsGlaad/pdv-frontend.git
    ```
 
 2. Navigate to the frontend directory:
