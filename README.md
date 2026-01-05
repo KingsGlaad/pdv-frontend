@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Costela PDV (Frontend)
 
-## Getting Started
+System for point of sale (PDV) management, featuring a modern dashboard for sales, financial, and user management.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### PDV (Point of Sale)
+
+- **Product Management**: Search and selection of products for sale.
+- **Cart System**: Add, remove, and adjust quantities of items.
+- **Payments**: Support for multiple payment methods (Cash, Card, PIX).
+- **Printing**: Integration with thermal printers (ESC/POS) via Serial Port for receipts.
+- **Settings**:
+  - **Printer Config**: Select terminal, printer type, and width.
+  - **Test Printer**: Helper to verify printer connection.
+
+### Dashboard
+
+- **Products**: Complete CRUD for product management.
+- **Financial**:
+  - Sales overview and reports.
+  - Charts for visual data analysis.
+  - Export data to Excel.
+  - Date range filtering.
+- **Users**: User management system.
+
+### General
+
+- **Customization**:
+  - Theme toggling (Light/Dark/System).
+  - Configurable application name and logo.
+- **Responsive**: Fully responsive design with mobile-friendly sidebar.
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- **Framework**: [Next.js 16](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **UI Components**: [Shadcn/ui](https://ui.shadcn.com/) (Radix Primitives)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Forms**: React Hook Form + Zod
+- **Data Fetching**: Axios
+- **Charts**: Recharts
+
+### Backend (Context)
+
+- **Framework**: NestJS
+- **Database**: PostgreSQL (Prisma ORM)
+- **Real-time**: Socket.io
+- **Hardware**: SerialPort (for thermal printer communication)
+
+## 📦 Getting Started
+
+### Prerequisites
+
+- Node.js (v18+)
+- npm / yarn / pnpm
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone <repository-url>
+   ```
+
+2. Navigate to the frontend directory:
+
+   ```bash
+   cd pdv-frontend
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+4. Configure Environment Variables:
+   Create a `.env` file based on `.env.example` (if available) or ensure your backend URL is configured.
+
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📂 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app`: App Router pages and layouts.
+- `src/components`: Reusable UI components.
+- `src/services`: API integration services.
+- `src/hooks`: Custom React hooks.
+- `src/types`: TypeScript type definitions.
+- `src/modules`: Feature-specific modules (legacy/backend context).
 
-## Learn More
+## 📄 License
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is proprietary.
