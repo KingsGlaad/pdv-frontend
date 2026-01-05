@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/auth-provider";
 import { api } from "@/services/api";
+import { useSocket } from "@/providers/socket-provider";
 import { RegisterSelector } from "./RegisterSelectorProps";
 import { ReasonModal } from "./ReasonModalProps";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ type SaleMode = "DIRECT" | "COMMAND";
 
 export function PDVInterface() {
   const { signout: logout, user } = useAuth();
+  const { socket } = useSocket();
 
   // --- ESTADOS DO SISTEMA ---
   const [activeRegisterId, setActiveRegisterId] = useState<string | null>(null);
@@ -79,10 +81,35 @@ export function PDVInterface() {
   useEffect(() => {
     if (isRegisterOpen) {
       fetchCommandas();
-      const interval = setInterval(fetchCommandas, 10000);
-      return () => clearInterval(interval);
+
+      if (socket) {
+        socket.on("orders:create", (data: any) => {
+          fetchCommandas();
+          toast.info(`Nova comanda #${data.number} aberta`, { duration: 2000 });
+        });
+
+        socket.on("orders:update", (data: any) => {
+          // Update list
+          fetchCommandas();
+
+          // If this is the active comanda, update the cart
+          if (saleMode === "COMMAND" && activeComandaId === data.id) {
+            // Re-fetch active order logic (or use data if it has items)
+            // For simplicity, we trigger the fetch logic below or just call it directly if we extract it.
+            // But since 'activeComandaId' is a dependency of another effect, we might just need to signal it.
+            // Ideally, we can just trigger a re-fetch.
+          }
+        });
+      }
+
+      return () => {
+        if (socket) {
+          socket.off("orders:create");
+          socket.off("orders:update");
+        }
+      };
     }
-  }, [isRegisterOpen]);
+  }, [isRegisterOpen, socket, saleMode, activeComandaId]);
 
   // --- MODAIS ---
   const [showOpeningModal, setShowOpeningModal] = useState(false);
@@ -217,6 +244,7 @@ export function PDVInterface() {
   };
 
   // --- POLLING ATIVO PARA COMANDA SELECIONADA ---
+  // Refetch active order on socket update or change
   useEffect(() => {
     if (saleMode === "COMMAND" && activeComandaId) {
       const fetchActiveOrder = async () => {
@@ -244,10 +272,19 @@ export function PDVInterface() {
       };
 
       fetchActiveOrder();
-      // Optional: Poll every few seconds to keep in sync with other waiters?
-      const interval = setInterval(fetchActiveOrder, 5000);
+
+      if (socket) {
+        socket.on("orders:update", (data: any) => {
+          if (data.id === activeComandaId) {
+            fetchActiveOrder();
+          }
+        });
+      }
+      return () => {
+        if (socket) socket.off("orders:update");
+      };
     }
-  }, [saleMode, activeComandaId]);
+  }, [saleMode, activeComandaId, socket]);
 
   const handleAddToCart = async (product: CartItem) => {
     if (!isRegisterOpen) {
