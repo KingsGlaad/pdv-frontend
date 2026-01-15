@@ -1209,7 +1209,7 @@ export function PDVInterface() {
                           </p>
                           <Button
                             className="font-bold bg-green-600 text-white w-full hover:bg-green-700"
-                            onClick={confirmSale}
+                            onClick={() => confirmSale()}
                           >
                             Simular Pagamento Recebido
                           </Button>
@@ -1229,7 +1229,7 @@ export function PDVInterface() {
                         <Button
                           size="lg"
                           className="font-bold px-8"
-                          onClick={confirmSale}
+                          onClick={() => confirmSale()}
                         >
                           Confirmar Transação
                         </Button>
