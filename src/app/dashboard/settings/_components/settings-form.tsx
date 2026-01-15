@@ -111,6 +111,7 @@ export function SettingsForm() {
           setPreviewUrl(config.logoUrl);
         }
       } catch (error) {
+        console.error(error);
         toast.error("Erro ao carregar configurações");
       } finally {
         // setLoading(false);
@@ -172,7 +173,7 @@ export function SettingsForm() {
 
       toast.success("Dados da empresa carregados!");
     } catch (error) {
-      // console.error(error); // Optional
+      console.error(error);
       toast.error("Erro ao buscar CNPJ. Verifique se está correto.");
     } finally {
       setSearchingCnpj(false);

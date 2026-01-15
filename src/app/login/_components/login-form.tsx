@@ -39,6 +39,7 @@ export function LoginForm({
     resolver: zodResolver(loginFormSchema),
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [backendError, setBackendError] = useState<string | null>(null);
 
   useEffect(() => {

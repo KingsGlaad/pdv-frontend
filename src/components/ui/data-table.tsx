@@ -123,7 +123,8 @@ export function DataTable<T extends { id?: string | number }>({
                     <TableCell key={colIndex} className={col.className}>
                       {col.cell
                         ? col.cell(row)
-                        : (row as any)[col.accessorKey as string]}
+                        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          (row as any)[col.accessorKey as string]}
                     </TableCell>
                   ))}
                 </TableRow>

@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function useTerminalId() {
-  const [terminalId, setTerminalId] = useState<string>("");
+  const [terminalId] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
 
-  useEffect(() => {
     let tid = localStorage.getItem("pdv_terminal_id");
     if (!tid) {
       tid = crypto.randomUUID();
       localStorage.setItem("pdv_terminal_id", tid);
     }
-    setTerminalId(tid);
-  }, []);
+    return tid;
+  });
 
   return terminalId;
 }

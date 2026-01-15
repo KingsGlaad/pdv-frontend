@@ -45,6 +45,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

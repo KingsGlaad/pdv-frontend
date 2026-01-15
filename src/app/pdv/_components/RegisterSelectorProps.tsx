@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -37,7 +38,7 @@ export function RegisterSelector({ onSelectRegister }: RegisterSelectorProps) {
   const [registers, setRegisters] = useState<Register[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { user, isLoading } = useAuth();
+  const { user, loading: isLoading } = useAuth();
 
   const fetchRegisters = async () => {
     setLoading(true);

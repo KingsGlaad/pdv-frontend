@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -13,7 +14,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/providers/auth-provider";
+//import { useAuth } from "@/providers/auth-provider";
 import { api } from "@/services/api";
 import { useSocket } from "@/providers/socket-provider";
 import { RegisterSelector } from "./RegisterSelectorProps";
@@ -44,7 +45,7 @@ type PaymentMethod = "money" | "credit" | "debit" | "pix";
 type SaleMode = "DIRECT" | "COMMAND";
 
 export function PDVInterface() {
-  const { signout: logout, user } = useAuth();
+  //const { signout: logout, user } = useAuth();
   const { socket } = useSocket();
 
   // --- ESTADOS DO SISTEMA ---
@@ -58,7 +59,7 @@ export function PDVInterface() {
     null
   );
   const [isFinalizing, setIsFinalizing] = useState(false);
-  const [customerCpf, setCustomerCpf] = useState("");
+  //const [customerCpf, setCustomerCpf] = useState("");
   const [discount, setDiscount] = useState(0);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
@@ -195,6 +196,7 @@ export function PDVInterface() {
         const responseCode = await api.get(`/product/code/${actualCode}`);
         productData = responseCode.data;
       } catch (error) {
+        console.error("Erro na busca por código:", error);
         if (!qtyMatch) {
           try {
             const responseSearch = await api.get(
@@ -203,7 +205,9 @@ export function PDVInterface() {
             if (responseSearch.data && responseSearch.data.length > 0) {
               productData = responseSearch.data[0];
             }
-          } catch (err) {}
+          } catch (err) {
+            console.error("Erro na busca por código:", err);
+          }
         }
       }
 
@@ -818,6 +822,7 @@ export function PDVInterface() {
                           });
                           toast.success("Garçom chamado!");
                         } catch (e) {
+                          console.log(e);
                           toast.error("Erro ao chamar garçom");
                         }
                       }

@@ -9,6 +9,14 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/ui/data-table";
 import { getSalesColumns, Sale } from "./_components/tables/sales-columns";
 
+interface SalesParams {
+  page: number;
+  limit: number;
+  search: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export default function SalesDashboardPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [totalSales, setTotalSales] = useState(0);
@@ -20,7 +28,7 @@ export default function SalesDashboardPage() {
   const fetchSales = useCallback(async () => {
     setLoading(true);
     try {
-      const params: any = {
+      const params: SalesParams = {
         page,
         limit: 10,
         search,

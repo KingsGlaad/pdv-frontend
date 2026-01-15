@@ -101,7 +101,8 @@ export function UserForm({
     const submitData: CreateUserDto = {
       ...values,
       password: values.password || "",
-      role: values.role as any, // role is enum vs string issue maybe, let's keep it simple
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      role: values.role as any,
     };
 
     await onSubmit(submitData);

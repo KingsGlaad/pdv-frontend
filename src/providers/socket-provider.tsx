@@ -16,34 +16,47 @@ const SocketContext = createContext<SocketContextData>({
 export const useSocket = () => useContext(SocketContext);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
+  const [socket] = useState<Socket | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
     // In dev, assuming localhost:3333 or similar.
     // Ideally this comes from ENV.
     // Since backend is on 3333 according to main.ts
-    const socketInstance = io("http://localhost:3333", {
+    // Use autoConnect: false to have better control in useEffect
+    return io(process.env.NEXT_PUBLIC_API_URL, {
       transports: ["websocket"],
-      autoConnect: true,
+      autoConnect: false,
     });
+  });
 
-    socketInstance.on("connect", () => {
-      console.log("Socket connected:", socketInstance.id);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const onConnect = () => {
+      console.log("Socket connected:", socket.id);
       setIsConnected(true);
-    });
+    };
 
-    socketInstance.on("disconnect", () => {
+    const onDisconnect = () => {
       console.log("Socket disconnected");
       setIsConnected(false);
-    });
+    };
 
-    setSocket(socketInstance);
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
+    // Connect manually
+    socket.connect();
 
     return () => {
-      socketInstance.disconnect();
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.disconnect();
     };
-  }, []);
+  }, [socket]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

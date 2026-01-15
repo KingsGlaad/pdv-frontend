@@ -9,7 +9,6 @@ import {
   Settings,
   BarChart3,
   Store,
-  LogOut,
   Wallet,
   User,
   Calculator,

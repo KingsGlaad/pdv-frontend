@@ -84,6 +84,7 @@ export function CommandasList({
                   R${" "}
                   {c.items
                     ?.reduce(
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       (acc: number, item: any) =>
                         acc + Number(item.price) * item.quantity,
                       0

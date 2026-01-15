@@ -44,7 +44,7 @@ export default function HelpPage() {
                 <AccordionContent>
                   Para cadastrar um novo produto, vá até a aba{" "}
                   <strong>Gestão &gt; Produtos</strong> no menu lateral e clique
-                  no botão <strong>"Novo Produto"</strong> no canto superior
+                  no botão <strong>Novo Produto</strong> no canto superior
                   direito. Preencha os dados obrigatórios e salve.
                 </AccordionContent>
               </AccordionItem>

@@ -18,7 +18,6 @@ export function SaleSuccessModal({
   total,
   change = 0,
   onNewSale,
-  onClose,
   saleId,
 }: SaleSuccessModalProps) {
   const handleReprint = async () => {

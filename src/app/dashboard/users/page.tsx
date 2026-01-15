@@ -66,6 +66,7 @@ export default function UsersPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleFormSubmit = async (data: any) => {
     setIsSaving(true);
     try {
