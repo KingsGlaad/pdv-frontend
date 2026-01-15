@@ -801,6 +801,30 @@ export function PDVInterface() {
                   >
                     <LogOut className="h-4 w-4" />
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-blue-700 hover:bg-blue-200 ml-2"
+                    title="Chamar Garçom"
+                    onClick={async () => {
+                      if (!activeComandaId) return;
+                      const comanda = commandas.find(
+                        (c) => c.id === activeComandaId
+                      );
+                      if (comanda) {
+                        try {
+                          await api.post("/orders/call-waiter", {
+                            table: comanda.table || `Comanda ${comanda.number}`,
+                          });
+                          toast.success("Garçom chamado!");
+                        } catch (e) {
+                          toast.error("Erro ao chamar garçom");
+                        }
+                      }
+                    }}
+                  >
+                    <Loader2 className="h-4 w-4" />
+                  </Button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 bg-green-100 px-3 py-1 rounded-lg border border-green-200">

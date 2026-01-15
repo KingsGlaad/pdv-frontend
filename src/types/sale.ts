@@ -1,16 +1,16 @@
 import { User } from "./user";
 
 export enum PaymentMethod {
-  CASH = "Dinheiro",
+  CASH = "CASH",
   PIX = "PIX",
-  CARD = "Cartão",
-  OTHER = "Outro",
+  CARD = "CARD",
+  OTHER = "OTHER",
 }
 
 export enum SaleStatus {
-  PENDING = "Em aberto",
-  COMPLETED = "Finalizado",
-  CANCELED = "Cancelado",
+  PENDING = "PENDING",
+  COMPLETED = "COMPLETED",
+  CANCELED = "CANCELED",
 }
 
 export interface Sale {
@@ -20,7 +20,7 @@ export interface Sale {
   total: number;
   discount?: number;
   finalAmount: number; // This might be string/decimal from backend, need to handle
-  paymentMethod: PaymentMethod;
+  paymentMethod: string; // Changed from PaymentMethod enum to string to match Prisma schema and allow other values
   status: SaleStatus;
   customerCpf?: string;
   createdAt: string;

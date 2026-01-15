@@ -74,7 +74,7 @@ export function CommandasList({
                 </span>
                 {c.table && (
                   <span className="text-xs bg-muted px-1 rounded border border-border text-muted-foreground">
-                    MESA/{c.table}
+                    {c.table}
                   </span>
                 )}
               </div>
