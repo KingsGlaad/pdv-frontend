@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,10 @@ const productSchema = z.object({
   code: z.string().min(1, "O código do produto é obrigatório"),
   name: z.string().min(1, "O nome do produto é obrigatório"),
   price: z.coerce.number().min(0, "O preço não pode ser negativo"),
+  stock: z.coerce
+    .number()
+    .int("O estoque deve ser um número inteiro")
+    .min(0, "O estoque não pode ser negativo"),
   category: z.string().optional(),
   description: z.string().optional(),
   imageUrl: z.string().optional(),
@@ -48,11 +52,14 @@ export function ProductForm({
   isLoading,
 }: ProductFormProps) {
   const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(
+      productSchema
+    ) as unknown as Resolver<ProductFormValues>,
     defaultValues: {
       name: "",
       code: "",
       price: 0,
+      stock: 0,
       category: "",
       description: "",
       imageUrl: "",
@@ -65,6 +72,7 @@ export function ProductForm({
         name: initialData.name,
         code: initialData.code,
         price: initialData.price,
+        stock: initialData.stock,
         category: initialData.category || "",
         description: initialData.description || "",
         imageUrl: initialData.imageUrl || "",
@@ -74,6 +82,7 @@ export function ProductForm({
         name: "",
         code: "",
         price: 0,
+        stock: 0,
         category: "",
         description: "",
         imageUrl: "",
@@ -140,24 +149,39 @@ export function ProductForm({
                 )}
               />
             </div>
-            <FormField<ProductFormValues>
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preço (R$)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField<ProductFormValues>
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preço (R$)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField<ProductFormValues>
+                control={form.control}
+                name="stock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estoque</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField<ProductFormValues>
               control={form.control}
               name="description"
